@@ -1,7 +1,7 @@
 # Dependencias y compilación
 node_modules/
 .next/
-dist/
+# dist contiene el prototipo estático escrito a mano y se versiona.
 build/
 coverage/
 *.tsbuildinfo

@@ -1,37 +1,50 @@
 # Wedge
 
-Proyecto nuevo iniciado desde cero el 5 de septiembre de 2026.
+Proyecto nuevo iniciado desde cero. Fuente: https://github.com/frogo777/wedge_next
 
-Wedge busca simplificar el cierre fiscal mensual de personas físicas RESICO en México. Esta primera versión del repositorio contiene únicamente la estructura y las decisiones iniciales. No hay aplicación ejecutable, conexión SAT, cálculos fiscales ni servicio comercial habilitado todavía.
+## Fase actual
 
-## Origen
+Primer prototipo navegable del Mes Fiscal con datos ficticios. Incluye resumen financiero, movimientos filtrables, resolución de pendientes y cierre simulado con aprobación, presentación, pago y descarga de un expediente sin validez fiscal.
 
-Este repositorio tiene historia Git propia. No se copiaron código, componentes, configuraciones, bases de datos, credenciales ni historial de proyectos anteriores. `wedge_next` es el nombre del repositorio en GitHub; la marca sigue siendo Wedge.
+No hay conexión al SAT, cuentas, cobros, datos reales ni motor fiscal validado. Los cambios viven en memoria y se reinician al recargar. Las tipografías se solicitan a Google Fonts; el resto de recursos del prototipo se sirve desde el sitio.
 
 ## Estructura
 
-- `apps/web/`: futura aplicación web.
-- `packages/fiscal/`: futuro motor fiscal independiente de la interfaz.
-- `docs/PRODUCTO.md`: alcance y flujo inicial.
-- `docs/ARQUITECTURA.md`: límites y decisiones técnicas pendientes.
-- `docs/FASES.md`: ruta de desarrollo y criterios de avance.
-- `docs/ESTADO.md`: evidencia actual y siguiente tarea.
+- `dist/`: HTML, CSS y JavaScript escritos a mano; son el código fuente versionado del prototipo estático, no archivos generados.
+- `dist/workflow.mjs`: máquina de estados del recorrido simulado.
+- `tests/workflow.test.mjs`: pruebas de orden de estados, bloqueo de saltos y coherencia del ejemplo.
+- `apps/web/`: documentación de la futura evolución de la aplicación.
+- `packages/fiscal/`: reservado para el motor fiscal, todavía sin implementación.
+- `docs/`: alcance, arquitectura, fases y evidencia.
+- `.openai/hosting.json`: identidad del sitio de demostración y directorio público.
 
-## Desarrollo
+## Ejecutar localmente
 
-Todavía no se eligieron dependencias ni framework. Los comandos de instalación, ejecución y validación se documentarán cuando exista el primer código ejecutable. No hay dependencias que instalar en esta etapa.
-
-No subir datos reales, archivos fiscales ni secretos a Git. El desarrollo inicial utilizará información sintética.
-
-## Repositorio
-
-Fuente de trabajo: https://github.com/frogo777/wedge_next
-
-La estructura inicial se mantiene en la rama `main`. Para trabajar desde un entorno con Git:
+Con Python 3, desde la raíz:
 
 ```bash
-git clone https://github.com/frogo777/wedge_next.git
-cd wedge_next
+python3 -m http.server 8000 --directory dist
 ```
 
-Esta entrega es la fundación del proyecto; todavía no incluye una aplicación ejecutable.
+Abrir `http://localhost:8000`. Servir por HTTP es necesario para los módulos JavaScript; no abrir directamente el HTML mediante `file://`.
+
+## Verificar
+
+Con Node.js:
+
+```bash
+node --check dist/app.mjs
+node --test tests/workflow.test.mjs
+```
+
+Las pruebas validan la lógica de demostración, no la exactitud fiscal ni el comportamiento en un navegador. No se requieren dependencias npm.
+
+## Guion de prueba manual
+
+1. En agosto, abrir Pendientes y confirmar el cobro y la revisión del gasto.
+2. Abrir Cierre mensual y simular revisión, autorización, presentación y pago, en ese orden.
+3. Descargar el expediente y comprobar que se identifica como demostración.
+4. Cambiar a septiembre para ver el estado vacío; a julio para consultar un mes completado.
+5. Reiniciar la demo y verificar que vuelven los dos pendientes de agosto.
+
+No se reutilizó código ni historial de proyectos Wedge anteriores. No agregar secretos o información de contribuyentes reales.

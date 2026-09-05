@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Explora el prototipo de Wedge: tus finanzas, pendientes y cierre mensual en un solo lugar.">
+<meta name="theme-color" content="#152747"><title>Wedge · Tu mes fiscal</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Ir al contenido</a>
+<aside class="sidebar">
+<a href="#resumen" class="brand" aria-label="Wedge, inicio"><svg viewBox="0 0 36 32" aria-hidden="true"><path d="M2 5h7l6 17 4-11h7l-8 21h-7zM25 0h9l-7 18h-8z" fill="currentColor"/></svg>wedge<span class="brand-dot">.</span></a>
+<p class="workspace-label">ESPACIO PERSONAL</p>
+<nav aria-label="Navegación principal" id="nav"></nav>
+<div class="sidebar-bottom"><div class="demo-note"><span class="tiny-label">PRIMER VISTAZO</span><p>Menos pendientes.<br>Más espacio para ti.</p><button class="text-light" data-action="help">Conoce esta demo <span>↗</span></button></div><div class="profile"><div class="avatar">AL</div><div><strong>Alex López</strong><small>Perfil de ejemplo · RESICO</small></div></div></div>
+</aside>
+<div class="workspace"><header class="topbar"><span class="breadcrumb">Mi espacio <span>/</span> <strong id="section-name">Resumen</strong></span><div class="topbar-right"><span class="demo-pill">Demo interactiva</span><button class="icon-button" data-action="help" aria-label="Ayuda sobre la demostración">?</button></div></header>
+<div class="notice"><span>Todos los datos son ficticios. Ninguna acción presenta declaraciones ni realiza pagos.</span><button data-action="reset">Reiniciar demo ↻</button></div>
+<main id="main" tabindex="-1"></main><footer>Wedge <span>Hecho para tenerlo claro.</span><span>Prototipo · Los cambios se reinician al recargar.</span></footer></div>
+<dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><span class="eyebrow">WEDGE / DEMOSTRACIÓN</span><button class="icon-button" data-action="close" aria-label="Cerrar">×</button></div><div id="dialog-content"></div></dialog>
+<div role="status" aria-live="polite" id="toast"></div>
+<script type="module" src="./app.mjs"></script>
+</body></html>
