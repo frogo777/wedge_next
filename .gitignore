@@ -1,0 +1,29 @@
+# Dependencias y compilación
+node_modules/
+.next/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.cer
+
+# Datos de clientes: usar únicamente fixtures sintéticos revisados
+private-data/
+uploads/
+backups/
+*.log
+
+# Archivos locales
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
