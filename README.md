@@ -22,7 +22,8 @@ En Cierre puedes abrir el simulador de ISR: cambia importes hipotéticos, consul
 - `db/schema.ts`, `drizzle/`: esquema y migración versionada.
 - `worker/`, `build/`, `scripts/`: ejecución y compilación para Sites.
 - `packages/documents/`: lector XML y ejemplos sintéticos; `public/document-view.mjs`: presentación segura de resultados.
-- `tests/`: 37 pruebas de recorrido, API con SQLite real, lectura documental y cálculo.
+- `tests/`: 37 pruebas de módulos/API y seis de integración del Worker compilado.
+- `.github/workflows/ci.yml`: comprobación continua sin permisos de publicación.
 - `docs/`: producto, arquitectura, ruta y evidencia.
 - `dist/`: resultado generado, excluido de Git.
 
@@ -32,8 +33,7 @@ Node.js 24 permite ejecutar las pruebas basadas en `node:sqlite`.
 
 ```bash
 npm ci
-npm run build
-node --test tests/*.test.mjs
+npm run verify
 ```
 
 El entorno de Sites incorpora sus propias dependencias y herramientas de compilación. `npm run dev` sirve para desarrollo. Las cabeceras de identidad solo son confiables detrás del despachador de Sites: publicar este Worker directamente sin sustituir la autenticación permitiría suplantaciones. No simular identidades con datos de usuarios reales.
@@ -48,3 +48,5 @@ El entorno de Sites incorpora sus propias dependencias y herramientas de compila
 6. En dos pestañas abiertas, intentar guardar sobre una versión anterior: la segunda debe solicitar recargar.
 
 No se ha realizado QA visual ni una prueba de inicio de sesión con dos cuentas reales. Las fuentes son del dispositivo; no se solicitan a Google Fonts. No agregar secretos, archivos de e.firma o información fiscal real.
+
+Consultar `docs/VERIFICACION.md` para comandos, cobertura y límites. Los resultados remotos se consultan en GitHub Actions; no hay protección de rama configurada por este workflow.

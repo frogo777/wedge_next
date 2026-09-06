@@ -97,3 +97,21 @@ Autoevaluación: implementación 6/10, pruebas aritméticas 6/10, validación en
 Comparación competitiva: este cálculo acotado no demuestra paridad operativa con Heru, Alegra o CONTPAQi. No se compararon resultados autenticados de esos productos; no se asignan notas de superioridad.
 
 Siguiente hito: validar la experiencia del simulador y preparar casos revisables antes de conectarlo a documentos y cierres reales. Mantener abiertos los pendientes de privacidad y operación.
+
+## Consolidación técnica — 2026-09-06
+
+Se mantienen las 37 pruebas de módulos/API y se agregan seis de integración sobre el Worker compilado con D1 local. Todas pasaron en este entorno, incluida recuperación tras reiniciar el runtime, cierre completo, lectura XML, exportación, eliminación y concurrencia. No se utilizaron cuentas reales o datos de producción.
+
+Workflow de GitHub Actions preparado para ejecutar instalación bloqueada, pruebas, compilación e integración por cada cambio en main o PR. Su resultado remoto se consulta en Actions; no se equipara el archivo de configuración con una ejecución aprobada ni con protección de rama.
+
+| Métrica /10 | Antes | Ahora | Evidencia |
+|---|---:|---:|---|
+| Integración del Worker compilado | 0 | 6 | Seis escenarios HTTP/D1 aprobados |
+| Recuperación tras reiniciar runtime local | 0 | 6 | Registro idéntico tras reinicio |
+| Verificación automatizable | 2 | 6 | Comando integral y workflow versionado |
+| Inicio de sesión real y QA visual | 0 | 0 | Pendientes |
+| Restauración de respaldo de producción | 0 | 0 | Pendiente |
+
+Autoevaluación: integración técnica 6/10, verificaciones reproducibles 6/10, experiencia observada 3/10. No se altera la puntuación de operación fiscal ni se declara superioridad frente a Heru, Alegra o CONTPAQi: estas son pruebas internas, no una comparación de sus productos.
+
+La siguiente decisión debe priorizar validar uso y requisitos pendientes antes de añadir más funciones. Las fases 3–6 conservan los pendientes de sesión real, privacidad operativa, documentos autorizados y revisión profesional.
