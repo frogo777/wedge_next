@@ -14,9 +14,9 @@ Esta confianza no es portátil a un Worker público directo: antes de salir de S
 
 ### Almacenamiento y conflictos
 
-D1 guarda una fila por usuario: identificador, estado del cierre de agosto ficticio, pendientes resueltos, versión y fecha de actualización. Drizzle mantiene el esquema y genera SQL versionado. No se ejecuta creación de tablas en cada solicitud.
+D1 guarda una fila por usuario: identificador, estado del cierre de agosto ficticio, pendientes resueltos, versión, revisión aleatoria y fecha de actualización. Drizzle mantiene el esquema y genera SQL versionado. No se ejecuta creación de tablas en cada solicitud.
 
-La API recibe eventos, nunca un estado fiscal arbitrario. Usa consultas preparadas filtradas por usuario, aplica la máquina de estados y realiza escritura condicional por versión. Una operación concurrente o antigua recibe 409 y obliga a recargar. Un fallo de red no provoca reintentos automáticos de una escritura cuyo resultado se desconoce.
+La API recibe eventos, nunca un estado fiscal arbitrario. Usa consultas preparadas filtradas por usuario, aplica la máquina de estados y realiza escritura condicional por versión y revisión. Una operación concurrente o antigua recibe 409 y obliga a recargar. Un fallo de red no provoca reintentos automáticos de una escritura cuyo resultado se desconoce.
 
 ### Controles implementados
 
@@ -27,7 +27,7 @@ La API recibe eventos, nunca un estado fiscal arbitrario. Usa consultas preparad
 - Texto del perfil y errores insertados con APIs DOM seguras.
 - Errores técnicos genéricos, sin registrar cabeceras o datos de cuenta.
 
-Las pruebas no constituyen auditoría de seguridad. Falta evaluar abuso y cuotas, recuperación y eliminación de cuentas, respaldos/restauración y políticas de retención. Reiniciar la demo restablece el recorrido; no elimina la fila de cuenta.
+Las pruebas no constituyen auditoría de seguridad. Falta evaluar abuso y cuotas, recuperación y eliminación de cuentas, respaldos/restauración y políticas de retención. Reiniciar la demo restablece el recorrido; Privacidad permite exportar o eliminar la fila de cuenta. La revisión aleatoria impide reutilizar una versión antigua después de recrear un registro.
 
 ## Límites para evolución
 

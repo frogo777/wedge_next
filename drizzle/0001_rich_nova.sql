@@ -1,0 +1,1 @@
+ALTER TABLE `demo_progress` ADD `revision` text DEFAULT 'legacy' NOT NULL;

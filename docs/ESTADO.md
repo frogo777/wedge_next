@@ -2,7 +2,7 @@
 
 Fecha: 2026-09-06. Proyecto desde cero en `frogo777/wedge_next`.
 
-## Fase 3 — implementación técnica
+## Fases 3 y 4 — acceso y privacidad de la demo
 
 Acceso mediante identidad de ChatGPT en Sites, progreso de agosto persistente por cuenta en D1, cierre de sesión, conflictos entre pestañas y recuperación de errores sin sobrescritura silenciosa. Se conserva el recorrido visual de la fase 2. Migración SQL versionada y salida de compilación separada del código fuente.
 
@@ -10,7 +10,7 @@ El alcance es una demo privada. No hay motor fiscal, SAT, pagos reales, document
 
 ## Evidencia
 
-14 pruebas automatizadas de lógica/API: seis del recorrido y ocho de acceso, aislamiento A/B, entradas adulteradas, origen y tamaño del cuerpo, escritura concurrente, versiones antiguas, guardado/lectura y ausencia de almacenamiento. La API se prueba con SQLite y un adaptador de D1. Compilación del Worker verificada. Las identidades de las pruebas son sintéticas.
+19 pruebas automatizadas de lógica/API: seis del recorrido y trece de acceso y privacidad, aislamiento A/B, entradas adulteradas, origen y tamaño del cuerpo, escritura concurrente, versiones antiguas, guardado/lectura y ausencia de almacenamiento. La API se prueba con SQLite y un adaptador de D1. Compilación del Worker verificada. Las identidades de las pruebas son sintéticas.
 
 Pendiente: QA visual, inicio/cierre de sesión con cuentas reales y recuperación entre dispositivos. La fase 3 no se declara validada con usuarios. El sitio seguirá privado mientras se completa esta validación y la fase de privacidad.
 
@@ -41,6 +41,22 @@ Referencia a ofertas públicas consultadas el 2026-09-05; no se probaron cuentas
 | CONTPAQi | Herramientas contables y administrativas profesionales | Sin motor contable ni integraciones equivalentes |
 
 Fuentes de esa investigación: https://www.heru.app/preguntas-frecuentes/ · https://www.alegra.com/mexico/precios/ · https://www.contpaqi.com/contabilidad
+
+## Avance de privacidad
+
+Sección Privacidad con exportación JSON del registro propio y eliminación efectiva de la fila activa, confirmada por el usuario. Revisión aleatoria para rechazar escrituras sobre un registro borrado y recreado. La migración añade una columna sin borrar progreso anterior. Se retiraron fuentes externas de Google. Inventario y procedimientos en PRIVACIDAD.md y OPERACION.md.
+
+| Métrica /10 | Fase 3 | Avance fase 4 |
+|---|---:|---:|
+| Exportación del registro propio | 0 | 6 |
+| Eliminación de la fila activa | 0 | 6 |
+| Protección ante registro recreado | 0 | 6 |
+| Validación con usuarios | 0 | 0 |
+| Cumplimiento legal integral | No evaluado | No evaluado |
+
+Autoevaluación: implementación 6/10, pruebas de lógica 6/10, validación en navegador 3/10. Cinco pruebas nuevas comprueban exportación, aislamiento de borrado, rechazo tras recreación, requisitos de eliminación y compatibilidad de la migración. La fase 4 continúa abierta: faltan aviso definitivo, responsables, canal y retención/restauración verificados. No se realizaron pruebas con cuentas reales ni borrados sobre datos de usuarios en producción.
+
+La comparación competitiva anterior sigue siendo una referencia de alcance, no una evaluación nueva de privacidad de competidores. No se ha demostrado que Wedge elimine o exporte mejor que Heru, Alegra o CONTPAQi.
 
 ## Próximo paso
 

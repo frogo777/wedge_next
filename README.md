@@ -8,6 +8,8 @@ Demo privada del mes fiscal para RESICO. Incluye movimientos ficticios, pendient
 
 No conecta al SAT, no recibe documentos fiscales, no calcula impuestos reales ni presenta declaraciones o ejecuta pagos. No es todavía un servicio comercial.
 
+La sección Privacidad permite exportar el registro actual y eliminarlo de la base activa. La eliminación no incluye la cuenta de ChatGPT, descargas ni respaldos del proveedor. Ver `docs/PRIVACIDAD.md` y `docs/OPERACION.md`.
+
 ## Estructura
 
 - `app/route.ts` y `app/page-template.mjs`: página y acceso.
@@ -40,4 +42,4 @@ El entorno de Sites incorpora sus propias dependencias y herramientas de compila
 5. Reiniciar la demo: vuelve al estado inicial de esa cuenta.
 6. En dos pestañas abiertas, intentar guardar sobre una versión anterior: la segunda debe solicitar recargar.
 
-No se ha realizado QA visual ni una prueba de inicio de sesión con dos cuentas reales. Las tipografías se solicitan a Google Fonts. No agregar secretos, archivos de e.firma o información fiscal real.
+No se ha realizado QA visual ni una prueba de inicio de sesión con dos cuentas reales. Las fuentes son del dispositivo; no se solicitan a Google Fonts. No agregar secretos, archivos de e.firma o información fiscal real.
