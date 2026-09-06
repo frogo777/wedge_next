@@ -16,3 +16,7 @@
 Estas fases corresponden al nuevo repositorio. Los avances de software anteriores no cuentan como implementación de este proyecto.
 
 Al cerrar cada fase, reportar evidencia, métricas de Wedge, autoevaluación de ejecución y comparación relevante con competidores. Usar «no evaluado» cuando no haya pruebas suficientes. No inventar puntuaciones de seguridad o rendimiento.
+
+## Avance al 2026-09-06
+
+Fases 1 y 2 implementadas. Fase 3 con identidad de Sites y guardado por cuenta, pruebas técnicas completadas; validación de sesiones reales y recuperación entre dispositivos pendiente. Fase 4 y posteriores aún sin completar. No se equipara una demo privada con autorización para comercializar servicios fiscales.

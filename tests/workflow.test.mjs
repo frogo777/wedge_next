@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initialState,transition,periods,available,report} from '../dist/workflow.mjs';
+import {initialState,transition,periods,available,report} from '../public/workflow.mjs';
 test('no permite presentar o pagar sin revisión y autorización',()=>{
  const s=initialState();for(const type of ['REVIEW','APPROVE','FILE','PAY'])assert.deepEqual(transition(s,{type}),s);
 });

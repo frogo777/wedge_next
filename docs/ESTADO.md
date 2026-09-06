@@ -1,52 +1,47 @@
 # Estado de Wedge
 
-Fecha: 2026-09-05. Proyecto creado desde cero en `frogo777/wedge_next`.
+Fecha: 2026-09-06. Proyecto desde cero en `frogo777/wedge_next`.
 
-## Fase 2 — prototipo implementado
+## Fase 3 — implementación técnica
 
-- Resumen con importes de ejemplo, gráfico y avance del mes.
-- Movimientos con filtros de ingresos/gastos.
-- Dos tareas revisables que desbloquean el cierre de agosto.
-- Revisión, autorización, presentación y pago simulados, en orden obligatorio.
-- Expediente descargable identificado como demostración, sin validez fiscal.
-- Julio completado y septiembre vacío; reinicio de la demo.
-- Navegación por hash, diseño adaptable, diálogos nativos con confirmación y etiquetas de accesibilidad.
+Acceso mediante identidad de ChatGPT en Sites, progreso de agosto persistente por cuenta en D1, cierre de sesión, conflictos entre pestañas y recuperación de errores sin sobrescritura silenciosa. Se conserva el recorrido visual de la fase 2. Migración SQL versionada y salida de compilación separada del código fuente.
 
-Las acciones son locales y no se persisten. No hay servicio contable, motor fiscal, autenticación, integración SAT ni pagos reales. Publicación preparada con acceso privado del fundador; confirmar el resultado de publicación mediante la plataforma.
+El alcance es una demo privada. No hay motor fiscal, SAT, pagos reales, documentos de contribuyentes ni contratación comercial. La verificación del despliegue se registra en Sites; este documento describe el código y sus límites.
 
-## Verificación realizada
+## Evidencia
 
-Seis pruebas de lógica aprobadas: bloqueo de saltos, tareas duplicadas/desconocidas, recorrido completo, protección de información ya aprobada, saldos ilustrativos y advertencias del expediente. Sintaxis JavaScript y referencias locales verificadas. No se ejecutó QA visual o de interacción en navegador. La adaptación móvil está implementada mediante CSS y requiere validación en dispositivos.
+14 pruebas automatizadas de lógica/API: seis del recorrido y ocho de acceso, aislamiento A/B, entradas adulteradas, origen y tamaño del cuerpo, escritura concurrente, versiones antiguas, guardado/lectura y ausencia de almacenamiento. La API se prueba con SQLite y un adaptador de D1. Compilación del Worker verificada. Las identidades de las pruebas son sintéticas.
 
-## Evaluación de cierre
+Pendiente: QA visual, inicio/cierre de sesión con cuentas reales y recuperación entre dispositivos. La fase 3 no se declara validada con usuarios. El sitio seguirá privado mientras se completa esta validación y la fase de privacidad.
 
-Escala de madurez: 0 sin implementación; 2 definido; 4 implementado; 6 probado técnicamente; 8 validado con usuarios; 10 operación sostenida. No es una probabilidad de éxito.
+## Evaluación
 
-| Dimensión de Wedge | Nota /10 | Evidencia |
-|---|---:|---|
-| Recorrido de demostración | 6 | Lógica del orden de operaciones probada |
-| Interfaz y adaptación móvil | 4 | Código implementado, QA visual pendiente |
-| Transparencia de la demo | 4 | Etiquetas persistentes, confirmaciones y expediente rotulado |
-| Validación con usuarios | 0 | Todavía sin observaciones reales |
-| Operación fiscal real | 0 | No implementada |
-| Seguridad de datos reales | No evaluada | Esta versión no los recibe |
+Escala: 0 ausente; 2 definido; 4 implementado; 6 probado técnicamente; 8 validado con usuarios; 10 operación sostenida. No expresa probabilidad de éxito ni certificación.
 
-Autoevaluación: ejecución de prototipo 6/10, claridad de alcance 7/10, validación de interfaz 3/10. Seis pruebas de lógica no equivalen a una auditoría ni permiten asegurar la usabilidad.
+| Dimensión | Fase 2 /10 | Fase 3 /10 | Evidencia |
+|---|---:|---:|---|
+| Recorrido de demostración | 6 | 6 | Máquina de estados probada |
+| Persistencia por cuenta | 0 | 6 | Guardado y aislamiento en pruebas de API |
+| Control de concurrencia | 0 | 6 | Conflictos de versión detectados |
+| Interfaz y móvil | 4 | 4 | Implementación sin QA visual |
+| Validación con usuarios | 0 | 0 | Sin sesiones observadas |
+| Operación fiscal real | 0 | 0 | Fuera de esta demo |
+| Seguridad integral | No evaluada | No evaluada | Controles parciales; sin auditoría |
 
-## Comparación con competidores
+Autoevaluación de ejecución: integración 6/10, comprobación de lógica 6/10, validación de experiencia 3/10. Los límites publicados son parte de la evaluación; no se asignan notas de superioridad sin uso observado.
 
-Comparación limitada a sus ofertas públicas consultadas en la fase de investigación del 2026-09-05. No se probaron sus productos autenticados.
+## Comparación competitiva
 
-| Referencia | Oferta documentada | Wedge en esta fase |
+Referencia a ofertas públicas consultadas el 2026-09-05; no se probaron cuentas de competidores. Esta fase mejora la continuidad de Wedge, pero no demuestra ventaja comercial.
+
+| Referencia | Oferta registrada en la investigación | Situación de Wedge |
 |---|---|---|
-| Heru | Declara ofrecer preparación, autorización y presentación de declaraciones | El recorrido es únicamente simulado; no hay paridad operativa |
-| Alegra ERP | Contabilidad, bancos, inventario y facturación | Solo experiencia mensual con datos ficticios |
-| CONTPAQi | Herramientas contables profesionales y ecosistema administrativo | Alcance mucho menor, centrado en un contribuyente |
+| Heru | Preparación, autorización y presentación de declaraciones | Recorrido simulado con progreso guardado; sin paridad fiscal |
+| Alegra México | Contabilidad, bancos, inventario y facturación | Alcance limitado al mes fiscal ficticio |
+| CONTPAQi | Herramientas contables y administrativas profesionales | Sin motor contable ni integraciones equivalentes |
 
-Fuentes: https://www.heru.app/preguntas-frecuentes/ · https://www.alegra.com/mexico/precios/ · https://www.contpaqi.com/contabilidad
+Fuentes de esa investigación: https://www.heru.app/preguntas-frecuentes/ · https://www.alegra.com/mexico/precios/ · https://www.contpaqi.com/contabilidad
 
-La hipótesis diferenciadora sigue siendo reducir el trabajo del cliente y hacer visible el seguimiento; aún no se demuestra superioridad respecto de esos servicios.
+## Próximo paso
 
-## Siguiente fase
-
-Validar la experiencia del prototipo y comenzar cuentas/permisos de la fase 3. Antes de aceptar datos reales, diseñar privacidad, aislamiento y responsabilidades operativas. La revisión profesional de cálculos corresponde a una fase posterior.
+Completar validación de acceso y uso real de la demo. Desarrollar fase 4: mapa de datos, retención/eliminación, responsables y procedimientos de atención e incidentes antes de incorporar datos fiscales reales.

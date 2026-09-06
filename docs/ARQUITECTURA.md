@@ -1,29 +1,34 @@
-# Arquitectura inicial
+# Arquitectura de Wedge
 
-Estado: límites definidos; tecnologías por seleccionar para esta nueva implementación.
+## Fase 3: demo autenticada con persistencia
 
-## Separación de responsabilidades
+Fecha: 2026-09-06. Repositorio nuevo, sin importar la base anterior.
 
-- Interfaz web: muestra datos, estados y acciones comprensibles.
-- Servicio de aplicación: aplica permisos, validaciones y transiciones del proceso.
-- Motor fiscal: transforma entradas verificadas mediante reglas reproducibles y versionadas.
-- Integraciones: reciben documentos o conectan servicios mediante adaptadores sustituibles.
-- Asistencia: explica resultados y orienta sobre faltantes; no puede inventar evidencia ni autorizar operaciones.
+La interfaz de la fase 2 se conserva como HTML/CSS y módulos JavaScript. Vinext compila un Worker para Sites con una ruta de página y una API. La migración a servidor incorpora únicamente identidad y progreso persistente; los importes siguen siendo constantes ficticias.
 
-## Estados y evidencia
+### Identidad y acceso
 
-Separar datos de ejemplo, estimaciones, cálculo revisado, autorización, presentación y pago. Cambiar un cálculo después de aprobado obliga a obtener una nueva aprobación. Cada avance real requiere actor, fecha, periodo y evidencia apropiada.
+Sites proporciona `oai-authenticated-user-id` detrás de su despachador autenticado. Esa identidad determina el propietario en todas las consultas; el cliente no puede enviar un propietario alternativo. El nombre o correo solo se usa para mostrar la cuenta, sin almacenarlo en D1. Las rutas de inicio/cierre de sesión pertenecen a la plataforma. El sitio mantiene acceso privado del fundador.
 
-## Datos
+Esta confianza no es portátil a un Worker público directo: antes de salir de Sites se necesita un proveedor de autenticación y verificación de sesión propios. No hay todavía operadores, organizaciones ni roles comerciales.
 
-El primer prototipo no recopilará información de contribuyentes reales. Antes de persistirla, definir aislamiento entre cuentas, acceso de operadores, cifrado, retención, eliminación, registro de consentimiento y restauración de respaldos.
+### Almacenamiento y conflictos
 
-## Próxima decisión técnica
+D1 guarda una fila por usuario: identificador, estado del cierre de agosto ficticio, pendientes resueltos, versión y fecha de actualización. Drizzle mantiene el esquema y genera SQL versionado. No se ejecuta creación de tablas en cada solicitud.
 
-Seleccionar un entorno que permita trabajar en la nube y probar desde navegador, sin exigir procesamiento pesado en la laptop del fundador. Comparar compatibilidad, portabilidad y costos antes de contratar servicios. El repositorio inicial no incorpora proveedores ni dependencias por herencia.
+La API recibe eventos, nunca un estado fiscal arbitrario. Usa consultas preparadas filtradas por usuario, aplica la máquina de estados y realiza escritura condicional por versión. Una operación concurrente o antigua recibe 409 y obliga a recargar. Un fallo de red no provoca reintentos automáticos de una escritura cuyo resultado se desconoce.
 
-## Decisión de implementación de fase 2
+### Controles implementados
 
-Prototipo estático con módulos JavaScript nativos y CSS, sin dependencias npm. El código fuente se mantiene en `dist/` para el alojamiento estático. Una máquina de estados pura separa las reglas del recorrido de la presentación. Los importes son constantes ficticias, no cálculos fiscales. El estado solo vive en memoria de la página.
+- Autenticación exigida para leer y escribir progreso.
+- Respuestas privadas sin caché; CSP de página y protección contra interpretación de tipos.
+- Escrituras JSON, origen de la misma aplicación y cuerpo real limitado a 1024 bytes.
+- Validación estricta de eventos y del orden del cierre.
+- Texto del perfil y errores insertados con APIs DOM seguras.
+- Errores técnicos genéricos, sin registrar cabeceras o datos de cuenta.
 
-Esta decisión reduce infraestructura para evaluar el recorrido. No define todavía la arquitectura de cuentas, datos, integraciones o motor fiscal de producción. El código sigue en el repositorio nuevo; no se importaron componentes de la base anterior.
+Las pruebas no constituyen auditoría de seguridad. Falta evaluar abuso y cuotas, recuperación y eliminación de cuentas, respaldos/restauración y políticas de retención. Reiniciar la demo restablece el recorrido; no elimina la fila de cuenta.
+
+## Límites para evolución
+
+La lógica fiscal futura será determinista y versionada, separada de asistencia por IA. Toda aprobación o presentación real requerirá actor, periodo, fecha y evidencia verificable. Los datos actuales no alimentan modelos. Antes de recibir documentos reales se debe completar privacidad, permisos de operadores y revisión fiscal profesional.

@@ -1,50 +1,43 @@
 # Wedge
 
-Proyecto nuevo iniciado desde cero. Fuente: https://github.com/frogo777/wedge_next
+Proyecto iniciado desde cero: https://github.com/frogo777/wedge_next
 
-## Fase actual
+## Estado
 
-Primer prototipo navegable del Mes Fiscal con datos ficticios. Incluye resumen financiero, movimientos filtrables, resolución de pendientes y cierre simulado con aprobación, presentación, pago y descarga de un expediente sin validez fiscal.
+Demo privada del mes fiscal para RESICO. Incluye movimientos ficticios, pendientes, cierre simulado y expediente sin validez fiscal. El progreso de agosto se guarda por cuenta en D1 y se recupera al volver. Julio y septiembre son ejemplos fijos. El acceso utiliza la identidad de ChatGPT proporcionada por Sites.
 
-No hay conexión al SAT, cuentas, cobros, datos reales ni motor fiscal validado. Los cambios viven en memoria y se reinician al recargar. Las tipografías se solicitan a Google Fonts; el resto de recursos del prototipo se sirve desde el sitio.
+No conecta al SAT, no recibe documentos fiscales, no calcula impuestos reales ni presenta declaraciones o ejecuta pagos. No es todavía un servicio comercial.
 
 ## Estructura
 
-- `dist/`: HTML, CSS y JavaScript escritos a mano; son el código fuente versionado del prototipo estático, no archivos generados.
-- `dist/workflow.mjs`: máquina de estados del recorrido simulado.
-- `tests/workflow.test.mjs`: pruebas de orden de estados, bloqueo de saltos y coherencia del ejemplo.
-- `apps/web/`: documentación de la futura evolución de la aplicación.
-- `packages/fiscal/`: reservado para el motor fiscal, todavía sin implementación.
-- `docs/`: alcance, arquitectura, fases y evidencia.
-- `.openai/hosting.json`: identidad del sitio de demostración y directorio público.
+- `app/route.ts` y `app/page-template.mjs`: página y acceso.
+- `public/`: interfaz CSS/JS y máquina de estados pura `workflow.mjs`.
+- `app/api/progress/route.ts`, `app/progress-service.mjs`: validación, aislamiento y guardado.
+- `db/schema.ts`, `drizzle/`: esquema y migración versionada.
+- `worker/`, `build/`, `scripts/`: ejecución y compilación para Sites.
+- `tests/`: pruebas de recorrido y API con SQLite real.
+- `docs/`: producto, arquitectura, ruta y evidencia.
+- `dist/`: resultado generado, excluido de Git.
 
-## Ejecutar localmente
+## Desarrollo y comprobación
 
-Con Python 3, desde la raíz:
-
-```bash
-python3 -m http.server 8000 --directory dist
-```
-
-Abrir `http://localhost:8000`. Servir por HTTP es necesario para los módulos JavaScript; no abrir directamente el HTML mediante `file://`.
-
-## Verificar
-
-Con Node.js:
+Node.js 24 permite ejecutar las pruebas basadas en `node:sqlite`.
 
 ```bash
-node --check dist/app.mjs
-node --test tests/workflow.test.mjs
+npm ci
+npm run build
+node --test tests/*.test.mjs
 ```
 
-Las pruebas validan la lógica de demostración, no la exactitud fiscal ni el comportamiento en un navegador. No se requieren dependencias npm.
+El entorno de Sites incorpora sus propias dependencias y herramientas de compilación. `npm run dev` sirve para desarrollo. Las cabeceras de identidad solo son confiables detrás del despachador de Sites: publicar este Worker directamente sin sustituir la autenticación permitiría suplantaciones. No simular identidades con datos de usuarios reales.
 
-## Guion de prueba manual
+## Prueba manual de la versión privada
 
-1. En agosto, abrir Pendientes y confirmar el cobro y la revisión del gasto.
-2. Abrir Cierre mensual y simular revisión, autorización, presentación y pago, en ese orden.
-3. Descargar el expediente y comprobar que se identifica como demostración.
-4. Cambiar a septiembre para ver el estado vacío; a julio para consultar un mes completado.
-5. Reiniciar la demo y verificar que vuelven los dos pendientes de agosto.
+1. Entrar con la cuenta autorizada y resolver un pendiente de agosto.
+2. Recargar: debe conservarse el progreso.
+3. Resolver el otro pendiente y seguir revisión, autorización, presentación y pago simulados.
+4. Descargar el expediente rotulado como demostración.
+5. Reiniciar la demo: vuelve al estado inicial de esa cuenta.
+6. En dos pestañas abiertas, intentar guardar sobre una versión anterior: la segunda debe solicitar recargar.
 
-No se reutilizó código ni historial de proyectos Wedge anteriores. No agregar secretos o información de contribuyentes reales.
+No se ha realizado QA visual ni una prueba de inicio de sesión con dos cuentas reales. Las tipografías se solicitan a Google Fonts. No agregar secretos, archivos de e.firma o información fiscal real.
