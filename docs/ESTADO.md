@@ -115,3 +115,18 @@ Workflow de GitHub Actions preparado para ejecutar instalación bloqueada, prueb
 Autoevaluación: integración técnica 6/10, verificaciones reproducibles 6/10, experiencia observada 3/10. No se altera la puntuación de operación fiscal ni se declara superioridad frente a Heru, Alegra o CONTPAQi: estas son pruebas internas, no una comparación de sus productos.
 
 La siguiente decisión debe priorizar validar uso y requisitos pendientes antes de añadir más funciones. Las fases 3–6 conservan los pendientes de sesión real, privacidad operativa, documentos autorizados y revisión profesional.
+
+## Incremento: documentos y cobros conectados — 2026-09-06
+
+Resumen principal calculado desde registros guardados, selección de mes, confirmación/deshacer cobro completo y descarga TXT. Copias no duplican importes y versiones conflictivas excluyen el folio entero. Nueva columna aditiva collections; exportación y eliminación abarcan sus registros. El cierre ilustrativo y el simulador ISR siguen separados.
+
+| Métrica observable | Antes | Ahora |
+|---|---|---|
+| Resumen principal | Importes fijos | Derivado de documentos y cobros sintéticos |
+| Mes de cobro independiente de emisión | No | Julio–septiembre, cobro completo |
+| Folio en conflicto dentro de sumas | Sin resumen conectado | Excluido con aviso |
+| Pruebas de módulos/API | 37 | 47 |
+| Integración Worker | 6 | 6, ahora con persistencia de cobros |
+| Conciliación bancaria y comprobación fiscal real | No | No |
+
+Autoevaluación orientativa de esta entrega, no certificación: lógica y trazabilidad 7/10 (casos y fuente de importes); verificación técnica 7/10 (módulos, API, Worker y CI); experiencia comprobada 3/10 (sin QA visual/sesiones reales). No se afirma superioridad frente a CONTPAQi o Alegra: no hay benchmark con tareas y cuentas equivalentes. Ahorro de tiempo y disposición a pagar continúan sin medir. Este incremento no cierra la fase 5 ni habilita comercialización.

@@ -1,0 +1,1 @@
+ALTER TABLE `demo_progress` ADD `collections` text DEFAULT '[]' NOT NULL;

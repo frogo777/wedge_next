@@ -9,6 +9,7 @@ Fecha: 2026-09-06. Documento operativo interno; no es el aviso de privacidad com
 | Identificador de usuario de Sites | Aislar el registro | D1, clave de demo_progress | Se borra junto con la fila |
 | Pendientes resueltos y estado de agosto | Continuar la demo | D1 | Se borra junto con la fila |
 | Resultados de XML sintéticos, metadatos, huella y fecha | Revisar ejemplos y copias | D1 dentro de demo_progress | Se borran junto con la fila |
+| Confirmaciones de cobro sintéticas: folio, huella, importe, mes y fecha de confirmación | Resumen mensual | D1 dentro de demo_progress | Se borran junto con la fila |
 | Versión, revisión aleatoria y fecha | Evitar conflictos | D1 | Se borra junto con la fila |
 | Nombre/correo desde ChatGPT | Mostrar la cuenta | Solicitud/respuesta y DOM | No se persiste en D1 |
 | Movimientos e impuestos ficticios | Ilustrar el recorrido | Código público | No pertenecen a un contribuyente |
@@ -20,7 +21,7 @@ Los importes del simulador ISR se procesan en memoria del navegador y no se env�
 
 ## Controles disponibles
 
-La sección Privacidad permite descargar el registro actual de la cuenta autenticada como JSON y eliminarlo, con confirmación, de la base activa. La exportación no pretende incluir datos internos de ChatGPT o Sites. Las lecturas no crean una fila nueva. Volver a realizar una acción del recorrido puede crear una fila nueva.
+La sección Privacidad permite descargar el registro actual de la cuenta autenticada como JSON y eliminarlo, con confirmación, de la base activa. La exportación no pretende incluir datos internos de ChatGPT o Sites. Consultar la API con GET no crea una fila; procesar un XML de ejemplo sí puede crearla. Volver a realizar una acción del recorrido puede crear una fila nueva.
 
 La eliminación está condicionada a la versión y revisión leídas por el usuario. Cada escritura genera una revisión aleatoria: una pestaña que conserva un registro eliminado no puede modificar su reemplazo aunque ambos tengan el mismo número de versión. Una pestaña que nunca tuvo registro puede iniciar un nuevo recorrido; la eliminación no revoca sesiones ni prohíbe crear nuevos registros.
 

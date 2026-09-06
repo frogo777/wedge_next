@@ -160,3 +160,30 @@ test('API no admite XML propio, rutas, ejemplos desconocidos ni documentos inyec
  assert.equal(sqlite.prepare('SELECT COUNT(*) AS count FROM demo_progress').get().count,0);
  }finally{sqlite.close();}
 });
+
+test('cobros usan importe del documento, exigen versión y permanecen privados',async()=>{
+ const {db,sqlite}=fixture();try{
+ assert.equal((await handleProgress(request('A',{type:'CONFIRM_COLLECTION',id:'service',period:'2026-08'}),db)).status,422);
+ let state=(await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'service'}),db)).json()).state;
+ const event={type:'CONFIRM_COLLECTION',id:'service',period:'2026-08'};
+ const injected=JSON.stringify({event:{...event,amountCents:1},version:state.version,revision:state.revision});
+ assert.equal((await handleProgress(request('A',event,state.version,{revision:state.revision,body:injected}),db)).status,400);
+ const old=state;
+ state=(await (await handleProgress(request('A',event,state.version,{revision:state.revision}),db)).json()).state;
+ assert.equal(state.collections[0].amountCents,696000);assert.equal(state.stage,'preparing');
+ assert.equal((await handleProgress(request('A',{type:'UNDO_COLLECTION',id:'service'},old.version,{revision:old.revision}),db)).status,409);
+ assert.deepEqual((await (await handleProgress(request('B'),db)).json()).state.collections,[]);
+ assert.equal((await (await handleProgress(request('A',null,0,{query:'?export=1'}),db)).json()).record.collections.length,1);
+ state=(await (await handleProgress(request('A',{type:'RESET'},state.version,{revision:state.revision}),db)).json()).state;assert.equal(state.collections.length,1);
+ state=(await (await handleProgress(request('A',{type:'UNDO_COLLECTION',id:'service'},state.version,{revision:state.revision}),db)).json()).state;assert.deepEqual(state.collections,[]);assert.equal(state.documents.length,1);
+ await handleProgress(request('A',{type:'ERASE'},state.version,{revision:state.revision}),db);
+ assert.deepEqual((await (await handleProgress(request('A'),db)).json()).state.collections,[]);
+ }finally{sqlite.close();}
+});
+test('confirmaciones simultáneas del mismo cobro solo guardan una versión',async()=>{
+ const {db,sqlite}=fixture();try{
+ const s=(await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'service'}),db)).json()).state;
+ const r=await Promise.all([1,2].map(()=>handleProgress(request('A',{type:'CONFIRM_COLLECTION',id:'service',period:'2026-08'},s.version,{revision:s.revision}),db)));
+ assert.deepEqual(r.map(r=>r.status).sort(),[200,409]);assert.equal((await (await handleProgress(request('A'),db)).json()).state.collections.length,1);
+ }finally{sqlite.close();}
+});

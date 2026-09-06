@@ -5,6 +5,7 @@ export const demoProgress = sqliteTable('demo_progress', {
   resolved: text('resolved').notNull(),
   version: integer('version').notNull(),
   documents: text('documents').notNull().default('[]'),
+  collections: text('collections').notNull().default('[]'),
   revision: text('revision').notNull().default('legacy'),
   updatedAt: text('updated_at').notNull(),
 });

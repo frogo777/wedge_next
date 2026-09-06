@@ -28,3 +28,5 @@ Fase 5 iniciada en paralelo a los pendientes de privacidad: lector de XML sinté
 Fase 6 iniciada: simulación versionada de ISR mensual, sin IVA ni determinación de elegibilidad. Validación aritmética completada; revisión profesional y uso fiscal pendientes. Las fases previas con requisitos pendientes continúan abiertas.
 
 Consolidación: pruebas de integración del Worker/D1 y verificación continua incorporadas. No se avanza a piloto comercial con fases previas incompletas.
+
+Fase 5, incremento de cobros: resumen conectado a documentos guardados, confirmación mensual y exclusión de conflictos. Falta ingesta real, conciliación, pagos parciales y revisión fiscal; no se declara fase completada.
