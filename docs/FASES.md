@@ -22,3 +22,5 @@ Al cerrar cada fase, reportar evidencia, métricas de Wedge, autoevaluación de 
 Fases 1 y 2 implementadas. Fase 3 con identidad de Sites y guardado por cuenta, pruebas técnicas completadas; validación de sesiones reales y recuperación entre dispositivos pendiente. Fase 4 y posteriores aún sin completar. No se equipara una demo privada con autorización para comercializar servicios fiscales.
 
 Fase 4 iniciada: exportación y eliminación de la demo, inventario y procedimientos. Pendientes el aviso comercial, responsable/canal, retención y restauración. No se declara fase terminada.
+
+Fase 5 iniciada en paralelo a los pendientes de privacidad: lector de XML sintéticos, duplicados y resultados por cuenta. No habilita ingesta de archivos reales.

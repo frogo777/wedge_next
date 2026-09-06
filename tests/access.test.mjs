@@ -119,3 +119,44 @@ test('la migración conserva el progreso previo y permite actualizarlo',async()=
  assert.equal((await handleProgress(request('A',{type:'RESOLVE',id:'gasto'},1,{revision:state.revision}),db)).status,200);
  }finally{sqlite.close();}
 });
+
+test('lecturas persisten por cuenta y se incluyen en exportación y eliminación',async()=>{
+ const {db,sqlite}=fixture();try{
+ let result=await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'service'}),db)).json();
+ assert.equal(result.state.documents.length,1);assert.equal(result.documentResult.status,'read');
+ assert.equal((await (await handleProgress(request('A'),db)).json()).state.documents[0].metadata.total,'6960.00');
+ assert.deepEqual((await (await handleProgress(request('B'),db)).json()).state.documents,[]);
+ const exported=await (await handleProgress(request('A',null,0,{query:'?export=1'}),db)).json();assert.equal(exported.record.documents.length,1);
+ const reset=await (await handleProgress(request('A',{type:'RESET'},result.state.version,{revision:result.state.revision}),db)).json();assert.equal(reset.state.documents.length,1);
+ assert.equal((await handleProgress(request('A',{type:'ERASE'},reset.state.version,{revision:reset.state.revision}),db)).status,200);
+ assert.equal((await (await handleProgress(request('A',null,0,{query:'?export=1'}),db)).json()).record,null);
+ }finally{sqlite.close();}
+});
+test('copias no se acumulan y diferencias de folio quedan señaladas',async()=>{
+ const {db,sqlite}=fixture();try{
+ const first=(await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'service'}),db)).json()).state;
+ const copy=await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'copy'},first.version,{revision:first.revision}),db)).json();
+ assert.equal(copy.documentResult.status,'duplicate');assert.equal(copy.state.version,first.version);assert.equal(copy.state.documents.length,1);
+ const conflict=await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'conflict'},first.version,{revision:first.revision}),db)).json();
+ assert.equal(conflict.documentResult.status,'conflict');assert.equal(conflict.state.documents.length,2);assert.equal(conflict.state.stage,'preparing');assert.deepEqual(conflict.state.resolved,[]);
+ }finally{sqlite.close();}
+});
+test('lecturas simultáneas no sobrescriben resultados y rechazos son recuperables',async()=>{
+ const {db,sqlite}=fixture();try{
+ const results=await Promise.all(['service','no_stamp'].map(id=>handleProgress(request('A',{type:'ADD_DOCUMENT',id}),db)));
+ assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
+ const state=(await (await handleProgress(request('A'),db)).json()).state;
+ const retry=await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'no_stamp'},state.version,{revision:state.revision}),db)).json();
+ assert.equal(retry.documentResult.status,'rejected');
+ assert.ok((await (await handleProgress(request('A'),db)).json()).state.documents.some(d=>d.sampleId==='no_stamp'));
+ }finally{sqlite.close();}
+});
+test('API no admite XML propio, rutas, ejemplos desconocidos ni documentos inyectados',async()=>{
+ const {db,sqlite}=fixture();try{
+ for(const id of ['../../private','__proto__','unknown'])assert.equal((await handleProgress(request('A',{type:'ADD_DOCUMENT',id}),db)).status,400);
+ const body={event:{type:'ADD_DOCUMENT',id:'service',xml:'<real/>'},version:0,revision:null};
+ assert.equal((await handleProgress(request('A',body.event,0,{body:JSON.stringify(body)}),db)).status,400);
+ assert.equal((await handleProgress(request('A',body.event,0,{body:JSON.stringify({event:{type:'RESET'},version:0,revision:null,documents:[{}]})}),db)).status,400);
+ assert.equal(sqlite.prepare('SELECT COUNT(*) AS count FROM demo_progress').get().count,0);
+ }finally{sqlite.close();}
+});

@@ -10,6 +10,8 @@ No conecta al SAT, no recibe documentos fiscales, no calcula impuestos reales ni
 
 La sección Privacidad permite exportar el registro actual y eliminarlo de la base activa. La eliminación no incluye la cuenta de ChatGPT, descargas ni respaldos del proveedor. Ver `docs/PRIVACIDAD.md` y `docs/OPERACION.md`.
 
+En Movimientos puedes abrir Documentos y probar seis XML sintéticos. Los resultados persisten, se exportan y se eliminan desde Privacidad. No se admiten archivos propios y las lecturas no modifican el cálculo de ejemplo.
+
 ## Estructura
 
 - `app/route.ts` y `app/page-template.mjs`: página y acceso.
@@ -17,7 +19,8 @@ La sección Privacidad permite exportar el registro actual y eliminarlo de la ba
 - `app/api/progress/route.ts`, `app/progress-service.mjs`: validación, aislamiento y guardado.
 - `db/schema.ts`, `drizzle/`: esquema y migración versionada.
 - `worker/`, `build/`, `scripts/`: ejecución y compilación para Sites.
-- `tests/`: pruebas de recorrido y API con SQLite real.
+- `packages/documents/`: lector XML y ejemplos sintéticos; `public/document-view.mjs`: presentación segura de resultados.
+- `tests/`: 30 pruebas de recorrido, API con SQLite real y lectura documental.
 - `docs/`: producto, arquitectura, ruta y evidencia.
 - `dist/`: resultado generado, excluido de Git.
 

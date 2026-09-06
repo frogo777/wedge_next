@@ -32,3 +32,7 @@ Las pruebas no constituyen auditoría de seguridad. Falta evaluar abuso y cuotas
 ## Límites para evolución
 
 La lógica fiscal futura será determinista y versionada, separada de asistencia por IA. Toda aprobación o presentación real requerirá actor, periodo, fecha y evidencia verificable. Los datos actuales no alimentan modelos. Antes de recibir documentos reales se debe completar privacidad, permisos de operadores y revisión fiscal profesional.
+
+## Lectura documental de ejemplo
+
+El módulo packages/documents/read-cfdi.mjs extrae metadatos de XML sintéticos del catálogo cerrado del servidor. ADD_DOCUMENT solo admite un identificador conocido. Los resultados se guardan en documents, dentro de la misma fila por cuenta; toda escritura mantiene versión y revisión condicional. Se exportan y eliminan con el resto del registro. El parser no calcula impuestos ni confirma autenticidad o cobro. Ver DOCUMENTOS.md para límites y fuentes.

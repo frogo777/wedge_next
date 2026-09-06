@@ -10,7 +10,7 @@ El alcance es una demo privada. No hay motor fiscal, SAT, pagos reales, document
 
 ## Evidencia
 
-19 pruebas automatizadas de lógica/API: seis del recorrido y trece de acceso y privacidad, aislamiento A/B, entradas adulteradas, origen y tamaño del cuerpo, escritura concurrente, versiones antiguas, guardado/lectura y ausencia de almacenamiento. La API se prueba con SQLite y un adaptador de D1. Compilación del Worker verificada. Las identidades de las pruebas son sintéticas.
+30 pruebas automatizadas de lógica/API: seis del recorrido, diecisiete de acceso/privacidad/documentos y siete del lector/presentación, aislamiento A/B, entradas adulteradas, origen y tamaño del cuerpo, escritura concurrente, versiones antiguas, guardado/lectura y ausencia de almacenamiento. La API se prueba con SQLite y un adaptador de D1. Compilación del Worker verificada. Las identidades de las pruebas son sintéticas.
 
 Pendiente: QA visual, inicio/cierre de sesión con cuentas reales y recuperación entre dispositivos. La fase 3 no se declara validada con usuarios. El sitio seguirá privado mientras se completa esta validación y la fase de privacidad.
 
@@ -61,3 +61,21 @@ La comparación competitiva anterior sigue siendo una referencia de alcance, no 
 ## Próximo paso
 
 Completar validación de acceso y uso real de la demo. Desarrollar fase 4: mapa de datos, retención/eliminación, responsables y procedimientos de atención e incidentes antes de incorporar datos fiscales reales.
+
+## Avance de fase 5 — documentos sintéticos
+
+Implementada la lectura real de seis XML de prueba y la detección de duplicados, contenido conflictivo, datos faltantes, periodo distinto y método PPD. Los resultados persisten por cuenta e integran exportación y eliminación. Sin carga de archivos externos ni cambios de importes fiscales. La fase 4 mantiene sus pendientes; esto es preparación de la ingesta, no habilitación para recibir documentos de clientes.
+
+| Métrica /10 | Antes | Ahora | Evidencia |
+|---|---:|---:|---|
+| Extracción de metadatos de XML sintéticos | 0 | 6 | Casos estructurales y límites probados |
+| Detección de copias y conflictos | 0 | 6 | Huella y UUID; no acumula copias |
+| Persistencia y privacidad de resultados | 0 | 6 | Aislamiento, exportación y borrado probados |
+| Validez fiscal de documentos reales | 0 | 0 | Fuera del alcance |
+| Usabilidad observada | 0 | 0 | Sin prueba de navegador/usuarios |
+
+Autoevaluación: implementación 6/10, comprobación de lógica 6/10 y validación de experiencia 3/10. Escala de madurez ya definida; no son porcentajes de éxito.
+
+Comparación: frente al alcance contable de Heru, Alegra y CONTPAQi registrado en la investigación inicial, Wedge sigue ofreciendo un ensayo con datos sintéticos. No se probaron sus lectores de XML ni se demuestra ventaja de precisión, velocidad o precio.
+
+Siguiente hito: validación del recorrido y cierre de requisitos de privacidad antes de aceptar documentos reales. Motor fiscal, presentación y pagos siguen sin implementar.

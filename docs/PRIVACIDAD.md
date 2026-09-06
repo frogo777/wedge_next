@@ -8,12 +8,13 @@ Fecha: 2026-09-06. Documento operativo interno; no es el aviso de privacidad com
 |---|---|---|---|
 | Identificador de usuario de Sites | Aislar el registro | D1, clave de demo_progress | Se borra junto con la fila |
 | Pendientes resueltos y estado de agosto | Continuar la demo | D1 | Se borra junto con la fila |
+| Resultados de XML sintéticos, metadatos, huella y fecha | Revisar ejemplos y copias | D1 dentro de demo_progress | Se borran junto con la fila |
 | Versión, revisión aleatoria y fecha | Evitar conflictos | D1 | Se borra junto con la fila |
 | Nombre/correo desde ChatGPT | Mostrar la cuenta | Solicitud/respuesta y DOM | No se persiste en D1 |
 | Movimientos e impuestos ficticios | Ilustrar el recorrido | Código público | No pertenecen a un contribuyente |
 | JSON y expediente descargados | Copia solicitada por usuario | Dispositivo del usuario | Fuera del control de Wedge |
 
-No existe carga de RFC, CFDI, e.firma, documentos o datos bancarios reales. El código de Wedge no integra analítica publicitaria ni envía información a modelos. Se quitaron las solicitudes de tipografías a Google; se utilizan fuentes del dispositivo. Esto no implica ausencia de telemetría, cookies o registros de los proveedores de acceso y alojamiento.
+No existe carga de RFC, CFDI, e.firma, documentos o datos bancarios aportados por usuarios. Los RFC y datos de los XML de ejemplo son sintéticos; sus resultados sí se guardan por cuenta. El código de Wedge no integra analítica publicitaria ni envía información a modelos. Se quitaron las solicitudes de tipografías a Google; se utilizan fuentes del dispositivo. Esto no implica ausencia de telemetría, cookies o registros de los proveedores de acceso y alojamiento.
 
 ## Controles disponibles
 

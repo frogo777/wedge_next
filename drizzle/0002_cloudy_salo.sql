@@ -1,0 +1,1 @@
+ALTER TABLE `demo_progress` ADD `documents` text DEFAULT '[]' NOT NULL;
