@@ -16,6 +16,8 @@ Fecha: 2026-09-06. Documento operativo interno; no es el aviso de privacidad com
 
 No existe carga de RFC, CFDI, e.firma, documentos o datos bancarios aportados por usuarios. Los RFC y datos de los XML de ejemplo son sintéticos; sus resultados sí se guardan por cuenta. El código de Wedge no integra analítica publicitaria ni envía información a modelos. Se quitaron las solicitudes de tipografías a Google; se utilizan fuentes del dispositivo. Esto no implica ausencia de telemetría, cookies o registros de los proveedores de acceso y alojamiento.
 
+Los importes del simulador ISR se procesan en memoria del navegador y no se envían a la API ni se guardan en D1. El TXT que descargue el usuario queda en su dispositivo; no forma parte de la exportación o eliminación del registro de cuenta.
+
 ## Controles disponibles
 
 La sección Privacidad permite descargar el registro actual de la cuenta autenticada como JSON y eliminarlo, con confirmación, de la base activa. La exportación no pretende incluir datos internos de ChatGPT o Sites. Las lecturas no crean una fila nueva. Volver a realizar una acción del recorrido puede crear una fila nueva.

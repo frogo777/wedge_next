@@ -6,11 +6,11 @@ Fecha: 2026-09-06. Proyecto desde cero en `frogo777/wedge_next`.
 
 Acceso mediante identidad de ChatGPT en Sites, progreso de agosto persistente por cuenta en D1, cierre de sesión, conflictos entre pestañas y recuperación de errores sin sobrescritura silenciosa. Se conserva el recorrido visual de la fase 2. Migración SQL versionada y salida de compilación separada del código fuente.
 
-El alcance es una demo privada. No hay motor fiscal, SAT, pagos reales, documentos de contribuyentes ni contratación comercial. La verificación del despliegue se registra en Sites; este documento describe el código y sus límites.
+El alcance es una demo privada. No hay motor fiscal integral, SAT, pagos reales, documentos de contribuyentes ni contratación comercial. La verificación del despliegue se registra en Sites; este documento describe el código y sus límites.
 
 ## Evidencia
 
-30 pruebas automatizadas de lógica/API: seis del recorrido, diecisiete de acceso/privacidad/documentos y siete del lector/presentación, aislamiento A/B, entradas adulteradas, origen y tamaño del cuerpo, escritura concurrente, versiones antiguas, guardado/lectura y ausencia de almacenamiento. La API se prueba con SQLite y un adaptador de D1. Compilación del Worker verificada. Las identidades de las pruebas son sintéticas.
+37 pruebas automatizadas de lógica/API: seis del recorrido, diecisiete de acceso/privacidad/documentos y siete del lector/presentación y siete de cálculo/presentación, aislamiento A/B, entradas adulteradas, origen y tamaño del cuerpo, escritura concurrente, versiones antiguas, guardado/lectura y ausencia de almacenamiento. La API se prueba con SQLite y un adaptador de D1. Compilación del Worker verificada. Las identidades de las pruebas son sintéticas.
 
 Pendiente: QA visual, inicio/cierre de sesión con cuentas reales y recuperación entre dispositivos. La fase 3 no se declara validada con usuarios. El sitio seguirá privado mientras se completa esta validación y la fase de privacidad.
 
@@ -78,4 +78,22 @@ Autoevaluación: implementación 6/10, comprobación de lógica 6/10 y validaci�
 
 Comparación: frente al alcance contable de Heru, Alegra y CONTPAQi registrado en la investigación inicial, Wedge sigue ofreciendo un ensayo con datos sintéticos. No se probaron sus lectores de XML ni se demuestra ventaja de precisión, velocidad o precio.
 
-Siguiente hito: validación del recorrido y cierre de requisitos de privacidad antes de aceptar documentos reales. Motor fiscal, presentación y pagos siguen sin implementar.
+Siguiente hito: validación del recorrido y cierre de requisitos de privacidad antes de aceptar documentos reales. Motor fiscal integral, presentación y pagos siguen sin implementar.
+
+## Avance de fase 6 — simulación ISR
+
+Tabla mensual RESICO implementada como función pura versionada. Simulador en Cierre con entradas locales, desglose y exportación TXT. Aritmética exacta en centavos, rechazo de casos fuera de alcance y aviso de retenciones excedentes. No altera importes ficticios ni estados del cierre. Ver CALCULO.md.
+
+| Métrica /10 | Antes | Ahora | Evidencia |
+|---|---:|---:|---|
+| Aritmética de tabla mensual ISR | 0 | 6 | Fronteras, tasas completas y redondeo probados |
+| Explicación y trazabilidad del cálculo | 0 | 6 | Entradas, operación, fuente y versión en resultado |
+| Tratamiento de retenciones del ejemplo | 0 | 6 | Casos menores, iguales y excedentes probados |
+| Revisión profesional fiscal | 0 | 0 | Pendiente |
+| Operación contable integral | 0 | 0 | Sin IVA, SAT ni cobros |
+
+Autoevaluación: implementación 6/10, pruebas aritméticas 6/10, validación en navegador 3/10. Siete pruebas nuevas llevan el total a 37. Fase 6 abierta: no cumple aún la revisión profesional de salida.
+
+Comparación competitiva: este cálculo acotado no demuestra paridad operativa con Heru, Alegra o CONTPAQi. No se compararon resultados autenticados de esos productos; no se asignan notas de superioridad.
+
+Siguiente hito: validar la experiencia del simulador y preparar casos revisables antes de conectarlo a documentos y cierres reales. Mantener abiertos los pendientes de privacidad y operación.

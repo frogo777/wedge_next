@@ -24,3 +24,5 @@ Fases 1 y 2 implementadas. Fase 3 con identidad de Sites y guardado por cuenta, 
 Fase 4 iniciada: exportación y eliminación de la demo, inventario y procedimientos. Pendientes el aviso comercial, responsable/canal, retención y restauración. No se declara fase terminada.
 
 Fase 5 iniciada en paralelo a los pendientes de privacidad: lector de XML sintéticos, duplicados y resultados por cuenta. No habilita ingesta de archivos reales.
+
+Fase 6 iniciada: simulación versionada de ISR mensual, sin IVA ni determinación de elegibilidad. Validación aritmética completada; revisión profesional y uso fiscal pendientes. Las fases previas con requisitos pendientes continúan abiertas.

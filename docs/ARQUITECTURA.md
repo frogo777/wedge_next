@@ -36,3 +36,7 @@ La lógica fiscal futura será determinista y versionada, separada de asistencia
 ## Lectura documental de ejemplo
 
 El módulo packages/documents/read-cfdi.mjs extrae metadatos de XML sintéticos del catálogo cerrado del servidor. ADD_DOCUMENT solo admite un identificador conocido. Los resultados se guardan en documents, dentro de la misma fila por cuenta; toda escritura mantiene versión y revisión condicional. Se exportan y eliminan con el resto del registro. El parser no calcula impuestos ni confirma autenticidad o cobro. Ver DOCUMENTOS.md para límites y fuentes.
+
+## Simulación ISR
+
+Módulo puro `public/fiscal/resico-isr.mjs`, reexportado desde `packages/fiscal/index.mjs`: una sola fuente para navegador y pruebas Node. BigInt conserva exactitud decimal; resultados identifican regla y fuente. El simulador usa memoria de la página y no envía entradas al backend. No se integra automáticamente al cierre ficticio, documentos o autorizaciones.

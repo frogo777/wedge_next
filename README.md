@@ -6,11 +6,13 @@ Proyecto iniciado desde cero: https://github.com/frogo777/wedge_next
 
 Demo privada del mes fiscal para RESICO. Incluye movimientos ficticios, pendientes, cierre simulado y expediente sin validez fiscal. El progreso de agosto se guarda por cuenta en D1 y se recupera al volver. Julio y septiembre son ejemplos fijos. El acceso utiliza la identidad de ChatGPT proporcionada por Sites.
 
-No conecta al SAT, no recibe documentos fiscales, no calcula impuestos reales ni presenta declaraciones o ejecuta pagos. No es todavía un servicio comercial.
+No conecta al SAT, no recibe documentos fiscales, no determina obligaciones fiscales finales ni presenta declaraciones o ejecuta pagos. Incluye un simulador local de ISR mensual de alcance limitado. No es todavía un servicio comercial.
 
 La sección Privacidad permite exportar el registro actual y eliminarlo de la base activa. La eliminación no incluye la cuenta de ChatGPT, descargas ni respaldos del proveedor. Ver `docs/PRIVACIDAD.md` y `docs/OPERACION.md`.
 
 En Movimientos puedes abrir Documentos y probar seis XML sintéticos. Los resultados persisten, se exportan y se eliminan desde Privacidad. No se admiten archivos propios y las lecturas no modifican el cálculo de ejemplo.
+
+En Cierre puedes abrir el simulador de ISR: cambia importes hipotéticos, consulta la operación y descarga el desglose. Esos valores no se envían al servidor ni se guardan por cuenta.
 
 ## Estructura
 
@@ -20,7 +22,7 @@ En Movimientos puedes abrir Documentos y probar seis XML sintéticos. Los result
 - `db/schema.ts`, `drizzle/`: esquema y migración versionada.
 - `worker/`, `build/`, `scripts/`: ejecución y compilación para Sites.
 - `packages/documents/`: lector XML y ejemplos sintéticos; `public/document-view.mjs`: presentación segura de resultados.
-- `tests/`: 30 pruebas de recorrido, API con SQLite real y lectura documental.
+- `tests/`: 37 pruebas de recorrido, API con SQLite real, lectura documental y cálculo.
 - `docs/`: producto, arquitectura, ruta y evidencia.
 - `dist/`: resultado generado, excluido de Git.
 
