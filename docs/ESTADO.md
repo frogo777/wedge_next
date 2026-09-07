@@ -145,3 +145,17 @@ Comparación de documentos con igual folio, selección confirmada y exclusión r
 | Autenticidad de CFDI / operación fiscal real | No verificada | No verificada |
 
 Autoevaluación orientativa: lógica/trazabilidad 7/10; verificación técnica 7/10; experiencia comprobada 3/10 (sin QA visual). No se declara fase 5 terminada ni superioridad frente a CONTPAQi/Alegra: sigue pendiente un benchmark equivalente de tiempo, errores y costo con usuarios reales.
+
+## Revisión de interfaz por código — 2026-09-07
+
+La revisión visual solicitada quedó bloqueada por la política de URL del navegador. No se realizó ni se califica como aprobada. Se corrigieron defectos comprobables por código: salto al contenido que cambiaba la ruta, selección semántica de subapartados, texto demasiado pequeño, controles de 36 px, cabecera rígida y falta de área segura/reserva para la navegación móvil. Ver REVISION-INTERFAZ.md.
+
+| Dimensión | Antes | Cambio comprobado en código |
+|---|---|---|
+| Salto al contenido | Activaba #main en el enrutador | Conserva la sección y enfoca main |
+| Ayuda/cierre | 36 × 36 px declarados | 44 × 44 px declarados |
+| Párrafos principales | 14–15 px en varias vistas | 16 px declarados |
+| Cabecera | Altura fija sin envolver | Altura mínima y ajuste de líneas |
+| Revisión visual | Pendiente | Bloqueada por entorno; sigue pendiente |
+
+Autoevaluación: ejecución de correcciones 7/10; validación visual no evaluada. No se incrementa la puntuación de experiencia ni se afirma ventaja frente a competidores sin evidencia visual o pruebas comparables.

@@ -55,3 +55,5 @@ Consultar `docs/VERIFICACION.md` para comandos, cobertura y límites. Los result
 Ver `docs/COBROS.md` para el alcance del resumen conectado, sus exclusiones y casos comprobados.
 
 En Documentos, prueba «Servicio de agosto» y «Mismo folio, otro importe». Compara ambas versiones, elige cuál usar en la demo y consulta el historial. La elección no valida el CFDI ante el SAT. Ver `docs/CONFLICTOS.md`.
+
+Revisión de interfaz: `docs/REVISION-INTERFAZ.md` registra correcciones de navegación, legibilidad y reglas adaptables. El navegador de QA bloqueó la vista de prueba; estos cambios no constituyen aprobación visual.
