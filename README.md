@@ -22,7 +22,7 @@ En Cierre puedes abrir el simulador de ISR: cambia importes hipotéticos, consul
 - `db/schema.ts`, `drizzle/`: esquema y migración versionada.
 - `worker/`, `build/`, `scripts/`: ejecución y compilación para Sites.
 - `packages/documents/`: lector XML y ejemplos sintéticos; `public/document-view.mjs`: presentación segura de resultados.
-- `tests/`: 56 pruebas de módulos/API y seis de integración del Worker compilado.
+- `tests/`: 60 pruebas de módulos/API y seis de integración del Worker compilado.
 - `.github/workflows/ci.yml`: comprobación continua sin permisos de publicación.
 - `docs/`: producto, arquitectura, ruta y evidencia.
 - `dist/`: resultado generado, excluido de Git.
@@ -57,3 +57,5 @@ Ver `docs/COBROS.md` para el alcance del resumen conectado, sus exclusiones y ca
 En Documentos, prueba «Servicio de agosto» y «Mismo folio, otro importe». Compara ambas versiones, elige cuál usar en la demo y consulta el historial. La elección no valida el CFDI ante el SAT. Ver `docs/CONFLICTOS.md`.
 
 Revisión de interfaz: `docs/REVISION-INTERFAZ.md` registra correcciones de navegación, legibilidad y reglas adaptables. El navegador de QA bloqueó la vista de prueba; estos cambios no constituyen aprobación visual.
+
+Movimientos usa los documentos y cobros guardados del Resumen. Filtros: todos, cobrados este mes, pendientes al cierre y por revisar. El recorrido de cierre sigue siendo una simulación con cifras independientes.

@@ -56,3 +56,5 @@ footer{font-size:.75rem;color:var(--muted)}
  .task-row .task-text{min-width:0;width:100%}.task-row .button{margin-left:0;width:100%}
  .sidebar{padding-left:4px;padding-right:4px}nav{gap:2px}nav a{font-size:.875rem;overflow-wrap:anywhere}.nav-text{overflow-wrap:anywhere}
 }
+
+.movement-filters{flex-wrap:wrap}.movement-filters button{min-height:44px}.movement-folio{display:block;font-size:.75rem;color:var(--muted);margin:6px 0;overflow-wrap:anywhere;white-space:normal}.movement-filters+.subheading{font-size:.875rem}

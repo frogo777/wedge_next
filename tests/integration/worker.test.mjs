@@ -57,7 +57,7 @@ test('Worker: acceso protegido, cabeceras y recursos desplegables', { timeout: 1
   const page = await request('/', 'test-viewer'); assert.equal(page.status, 200);
   assert.equal(page.headers.get('cache-control'), 'private, no-store');
   assert.match(page.headers.get('content-security-policy'), /script-src 'self'/);
-  for (const path of ['/conflicts.mjs', '/ledger.mjs', '/ledger-view.mjs', '/app.mjs', '/workflow.mjs', '/document-view.mjs', '/calculator-view.mjs', '/fiscal/resico-isr.mjs', '/style.css', '/favicon.svg']) {
+  for (const path of ['/movements-view.mjs', '/conflicts.mjs', '/ledger.mjs', '/ledger-view.mjs', '/app.mjs', '/workflow.mjs', '/document-view.mjs', '/calculator-view.mjs', '/fiscal/resico-isr.mjs', '/style.css', '/favicon.svg']) {
     const asset = await request(path); assert.equal(asset.status, 200, path);
     const body = await asset.text(); assert.ok(body.length > 0, path);
     if (path.endsWith('.mjs')) assert.match(asset.headers.get('content-type'), /javascript/, path);

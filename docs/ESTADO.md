@@ -159,3 +159,18 @@ La revisión visual solicitada quedó bloqueada por la política de URL del nave
 | Revisión visual | Pendiente | Bloqueada por entorno; sigue pendiente |
 
 Autoevaluación: ejecución de correcciones 7/10; validación visual no evaluada. No se incrementa la puntuación de experiencia ni se afirma ventaja frente a competidores sin evidencia visual o pruebas comparables.
+
+## Incremento: Movimientos usa los registros de Resumen — 2026-09-07
+
+Se retiró la lista fija del apartado Movimientos y se conectó al resumen mensual existente. Cada folio aparece una vez, con emisión y cobro separados; filtros para cobrado, pendiente y revisión. Confirmación/deshacer/descarga reutilizan el flujo y el almacenamiento actuales. El cierre ilustrativo sigue separado.
+
+| Métrica | Antes | Ahora |
+|---|---|---|
+| Fuente de Movimientos | Lista fija | Registros guardados usados por Resumen |
+| Totales entre secciones | Podían diferir | Misma función y datos de entrada |
+| Filtros de cobros y revisión | No disponibles | Cuatro opciones |
+| Pruebas de módulos/API | 56 | 60 |
+| Integración Worker | 6 | 6, incluye recurso de Movimientos |
+| Revisión visual | Bloqueada | Pendiente, sin nueva afirmación de validación |
+
+Autoevaluación orientativa: coherencia de datos 7/10, ejecución técnica 7/10, experiencia visual no evaluada. No se cierra una fase comercial ni se declara ventaja frente a otros productos sin pruebas comparables.

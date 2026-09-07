@@ -4,7 +4,7 @@ Fecha: 2026-09-06. Consolidación técnica de las fases implementadas; no se ini
 
 ## Dos niveles de evidencia
 
-56 pruebas de módulos/API: recorrido, aislamiento con SQLite, documentos, decisiones de versiones, cobros y simulador ISR. Seis pruebas adicionales ejecutan el Worker compilado mediante Miniflare y D1 local:
+60 pruebas de módulos/API: recorrido, aislamiento con SQLite, documentos, decisiones de versiones, cobros y simulador ISR. Seis pruebas adicionales ejecutan el Worker compilado mediante Miniflare y D1 local:
 
 1. Página protegida, respuesta sin sesión, cabeceras y recursos JavaScript/CSS/SVG.
 2. Recorrido completo, lectura real del XML sintético, confirmación de cobro, elección de versión en conflicto, exportación y aislamiento por cuenta.
@@ -36,3 +36,5 @@ npm run test:integration
 La disponibilidad y resultado de ejecución remota dependen de GitHub Actions y se consultan en el repositorio. No se configuraron reglas de protección de rama: el workflow reporta fallos, pero no impide por sí solo un merge. La publicación privada sigue gestionándose por separado después de verificar la versión.
 
 Referencias técnicas: [Miniflare para pruebas](https://developers.cloudflare.com/workers/testing/miniflare/writing-tests/), [checkout](https://github.com/actions/checkout), [setup-node](https://github.com/actions/setup-node).
+
+Movimientos: se comprueba coincidencia con los totales del resumen, folio único, emisión/cobro en distintos meses, cobro incompatible y estados de carga/mes vacío/filtro vacío. Estas pruebas no verifican la apariencia en un navegador.
