@@ -57,7 +57,7 @@ test('Worker: acceso protegido, cabeceras y recursos desplegables', { timeout: 1
   const page = await request('/', 'test-viewer'); assert.equal(page.status, 200);
   assert.equal(page.headers.get('cache-control'), 'private, no-store');
   assert.match(page.headers.get('content-security-policy'), /script-src 'self'/);
-  for (const path of ['/ledger.mjs', '/ledger-view.mjs', '/app.mjs', '/workflow.mjs', '/document-view.mjs', '/calculator-view.mjs', '/fiscal/resico-isr.mjs', '/style.css', '/favicon.svg']) {
+  for (const path of ['/conflicts.mjs', '/ledger.mjs', '/ledger-view.mjs', '/app.mjs', '/workflow.mjs', '/document-view.mjs', '/calculator-view.mjs', '/fiscal/resico-isr.mjs', '/style.css', '/favicon.svg']) {
     const asset = await request(path); assert.equal(asset.status, 200, path);
     const body = await asset.text(); assert.ok(body.length > 0, path);
     if (path.endsWith('.mjs')) assert.match(asset.headers.get('content-type'), /javascript/, path);
@@ -67,6 +67,8 @@ test('Worker: cierre y lectura XML se guardan y exportan por cuenta', { timeout:
   for (const event of [
     { type: 'ADD_DOCUMENT', id: 'service' },
     { type: 'CONFIRM_COLLECTION', id: 'service', period: '2026-08' },
+    { type: 'ADD_DOCUMENT', id: 'conflict' },
+    { type: 'CHOOSE_DOCUMENT', id: 'service' },
     { type: 'RESOLVE', id: 'cobro' }, { type: 'RESOLVE', id: 'gasto' },
     ...['REVIEW', 'APPROVE', 'FILE', 'PAY'].map(type => ({ type })),
   ]) {
@@ -75,11 +77,12 @@ test('Worker: cierre y lectura XML se guardan y exportan por cuenta', { timeout:
   }
   const saved = await state('journey-a'); assert.equal(saved.stage, 'paid');
   assert.equal(saved.documents[0].metadata.total, '6960.00');
-  assert.equal(saved.collections[0].amountCents, 696000);
+  assert.equal(saved.collections[0].amountCents, 696000);assert.equal(saved.decisions[0].sampleId, 'service');
+  assert.deepEqual((await state('journey-b')).decisions, []);
   assert.deepEqual((await state('journey-b')).collections, []);
   assert.deepEqual((await state('journey-b')).documents, []);
   const exported = await (await request('/api/progress?export=1&user_id=journey-b', 'journey-a')).json();
-  assert.equal(exported.record.userId, 'journey-a'); assert.equal(exported.record.documents.length, 1);assert.equal(exported.record.collections.length, 1);
+  assert.equal(exported.record.userId, 'journey-a'); assert.equal(exported.record.documents.length, 2);assert.equal(exported.record.decisions.length, 1);assert.equal(exported.record.collections.length, 1);
 });
 test('Worker: D1 rechaza una escritura simultánea sin perder la otra', { timeout: 10000 }, async () => {
   const empty = await state('concurrent');

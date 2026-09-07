@@ -1,0 +1,1 @@
+ALTER TABLE `demo_progress` ADD `decisions` text DEFAULT '[]' NOT NULL;

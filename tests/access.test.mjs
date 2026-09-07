@@ -187,3 +187,31 @@ test('confirmaciones simultáneas del mismo cobro solo guardan una versión',asy
  assert.deepEqual(r.map(r=>r.status).sort(),[200,409]);assert.equal((await (await handleProgress(request('A'),db)).json()).state.collections.length,1);
  }finally{sqlite.close();}
 });
+
+test('decisiones de versiones se guardan, exportan y borran solo en su cuenta',async()=>{
+ const {db,sqlite}=fixture();try{
+ let s=(await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'service'}),db)).json()).state;
+ assert.equal((await handleProgress(request('A',{type:'CHOOSE_DOCUMENT',id:'service'},s.version,{revision:s.revision}),db)).status,422);
+ s=(await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'conflict'},s.version,{revision:s.revision}),db)).json()).state;
+ const old=s;
+ s=(await (await handleProgress(request('A',{type:'CHOOSE_DOCUMENT',id:'conflict'},s.version,{revision:s.revision}),db)).json()).state;
+ assert.equal(s.decisions.length,1);assert.equal(s.decisions[0].sampleId,'conflict');assert.equal(s.documents.length,2);
+ assert.equal((await handleProgress(request('A',{type:'CHOOSE_DOCUMENT',id:'service'},old.version,{revision:old.revision}),db)).status,409);
+ assert.deepEqual((await (await handleProgress(request('B'),db)).json()).state.decisions,[]);
+ assert.equal((await (await handleProgress(request('A',null,0,{query:'?export=1'}),db)).json()).record.decisions.length,1);
+ s=(await (await handleProgress(request('A',{type:'RESET'},s.version,{revision:s.revision}),db)).json()).state;assert.equal(s.decisions.length,1);
+ s=(await (await handleProgress(request('A',{type:'REOPEN_CONFLICT',id:'conflict'},s.version,{revision:s.revision}),db)).json()).state;assert.equal(s.decisions.length,2);
+ await handleProgress(request('A',{type:'ERASE'},s.version,{revision:s.revision}),db);
+ assert.deepEqual((await (await handleProgress(request('A'),db)).json()).state.decisions,[]);
+ }finally{sqlite.close();}
+});
+test('elecciones simultáneas no sobrescriben el historial y no aceptan datos de selección inyectados',async()=>{
+ const {db,sqlite}=fixture();try{
+ let s=(await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'service'}),db)).json()).state;
+ s=(await (await handleProgress(request('A',{type:'ADD_DOCUMENT',id:'conflict'},s.version,{revision:s.revision}),db)).json()).state;
+ const e={type:'CHOOSE_DOCUMENT',id:'service'};
+ for(const body of [{event:{...e,fingerprint:'forged'},version:s.version,revision:s.revision},{event:e,version:s.version,revision:s.revision,decisions:[]}])assert.equal((await handleProgress(request('A',e,s.version,{body:JSON.stringify(body)}),db)).status,400);
+ const rs=await Promise.all(['service','conflict'].map(id=>handleProgress(request('A',{type:'CHOOSE_DOCUMENT',id},s.version,{revision:s.revision}),db)));
+ assert.deepEqual(rs.map(r=>r.status).sort(),[200,409]);assert.equal((await (await handleProgress(request('A'),db)).json()).state.decisions.length,1);
+ }finally{sqlite.close();}
+});

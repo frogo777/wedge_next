@@ -10,6 +10,7 @@ Fecha: 2026-09-06. Documento operativo interno; no es el aviso de privacidad com
 | Pendientes resueltos y estado de agosto | Continuar la demo | D1 | Se borra junto con la fila |
 | Resultados de XML sintéticos, metadatos, huella y fecha | Revisar ejemplos y copias | D1 dentro de demo_progress | Se borran junto con la fila |
 | Confirmaciones de cobro sintéticas: folio, huella, importe, mes y fecha de confirmación | Resumen mensual | D1 dentro de demo_progress | Se borran junto con la fila |
+| Historial de versiones: selección/exclusión, folio, huellas y fecha | Trazar elecciones en la demo | D1, columna decisions | Se borra junto con la fila |
 | Versión, revisión aleatoria y fecha | Evitar conflictos | D1 | Se borra junto con la fila |
 | Nombre/correo desde ChatGPT | Mostrar la cuenta | Solicitud/respuesta y DOM | No se persiste en D1 |
 | Movimientos e impuestos ficticios | Ilustrar el recorrido | Código público | No pertenecen a un contribuyente |

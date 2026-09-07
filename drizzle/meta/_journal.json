@@ -29,6 +29,13 @@
       "when": 1788685190702,
       "tag": "0003_careful_namorita",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788743966282,
+      "tag": "0004_silly_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

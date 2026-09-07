@@ -22,7 +22,7 @@ En Cierre puedes abrir el simulador de ISR: cambia importes hipotéticos, consul
 - `db/schema.ts`, `drizzle/`: esquema y migración versionada.
 - `worker/`, `build/`, `scripts/`: ejecución y compilación para Sites.
 - `packages/documents/`: lector XML y ejemplos sintéticos; `public/document-view.mjs`: presentación segura de resultados.
-- `tests/`: 47 pruebas de módulos/API y seis de integración del Worker compilado.
+- `tests/`: 56 pruebas de módulos/API y seis de integración del Worker compilado.
 - `.github/workflows/ci.yml`: comprobación continua sin permisos de publicación.
 - `docs/`: producto, arquitectura, ruta y evidencia.
 - `dist/`: resultado generado, excluido de Git.
@@ -53,3 +53,5 @@ No se ha realizado QA visual ni una prueba de inicio de sesión con dos cuentas 
 Consultar `docs/VERIFICACION.md` para comandos, cobertura y límites. Los resultados remotos se consultan en GitHub Actions; no hay protección de rama configurada por este workflow.
 
 Ver `docs/COBROS.md` para el alcance del resumen conectado, sus exclusiones y casos comprobados.
+
+En Documentos, prueba «Servicio de agosto» y «Mismo folio, otro importe». Compara ambas versiones, elige cuál usar en la demo y consulta el historial. La elección no valida el CFDI ante el SAT. Ver `docs/CONFLICTOS.md`.

@@ -130,3 +130,18 @@ Resumen principal calculado desde registros guardados, selección de mes, confir
 | Conciliación bancaria y comprobación fiscal real | No | No |
 
 Autoevaluación orientativa de esta entrega, no certificación: lógica y trazabilidad 7/10 (casos y fuente de importes); verificación técnica 7/10 (módulos, API, Worker y CI); experiencia comprobada 3/10 (sin QA visual/sesiones reales). No se afirma superioridad frente a CONTPAQi o Alegra: no hay benchmark con tareas y cuentas equivalentes. Ahorro de tiempo y disposición a pagar continúan sin medir. Este incremento no cierra la fase 5 ni habilita comercialización.
+
+## Incremento: versiones comparables y decisiones registradas — 2026-09-07
+
+Comparación de documentos con igual folio, selección confirmada y exclusión reversible. El resumen usa la versión elegida; el cobro incompatible permanece señalado y excluido. Historial por cuenta con fecha y huellas, incluido en exportación/eliminación. Sin cambios de reglas fiscales.
+
+| Métrica | Antes | Ahora |
+|---|---|---|
+| Folios con versiones distintas | Exclusión sin salida | Comparación y elección explícita |
+| Historial de elecciones | No | Hasta 50 entradas por registro de demo |
+| Cambio de versión con cobro previo | Sin flujo | Conserva y excluye el cobro incompatible |
+| Pruebas de módulos/API | 47 | 56 |
+| Integración Worker | 6 | 6, incluye elección y recuperación |
+| Autenticidad de CFDI / operación fiscal real | No verificada | No verificada |
+
+Autoevaluación orientativa: lógica/trazabilidad 7/10; verificación técnica 7/10; experiencia comprobada 3/10 (sin QA visual). No se declara fase 5 terminada ni superioridad frente a CONTPAQi/Alegra: sigue pendiente un benchmark equivalente de tiempo, errores y costo con usuarios reales.

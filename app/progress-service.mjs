@@ -1,17 +1,20 @@
+import { decideConflict, decisionLimit } from '../public/conflicts.mjs';
 import { samples, sampleIds } from '../packages/documents/demo-samples.mjs';
 import { analyzeDocument } from '../packages/documents/read-cfdi.mjs';
 import { initialState, transition, taskIds } from '../public/workflow.mjs';
 import { collectionTransition, ledgerPeriods } from '../public/ledger.mjs';
 const json=(value,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Vary':'oai-authenticated-user-id'}});
-const SELECT='SELECT stage,resolved,version,updated_at,revision,documents,collections FROM demo_progress WHERE user_id = ?';
+const SELECT='SELECT stage,resolved,version,updated_at,revision,documents,collections,decisions FROM demo_progress WHERE user_id = ?';
 function decode(row){
- if(!row)return {...initialState(),version:0,updatedAt:null,revision:null,documents:[],collections:[]};
+ if(!row)return {...initialState(),version:0,updatedAt:null,revision:null,documents:[],collections:[],decisions:[]};
  const resolved=JSON.parse(row.resolved);const documents=JSON.parse(row.documents);
  const collections=JSON.parse(row.collections);
+ const decisions=JSON.parse(row.decisions);
+ if(!Array.isArray(decisions)||decisions.length>decisionLimit||decisions.some(d=>!d||!['choose','reopen'].includes(d.type)||!sampleIds.includes(d.sampleId)||typeof d.uuid!=='string'||typeof d.fingerprint!=='string'||typeof d.at!=='string'||!Array.isArray(d.variants)||d.variants.length>sampleIds.length||d.variants.some(v=>typeof v!=='string')))throw new Error('Invalid stored decisions');
  if(!Array.isArray(collections)||collections.length>sampleIds.length||collections.some(c=>!c||!sampleIds.includes(c.sampleId)||!ledgerPeriods.includes(c.period)||!Number.isSafeInteger(c.amountCents)||c.amountCents<0||typeof c.uuid!=='string'||typeof c.fingerprint!=='string'||typeof c.confirmedAt!=='string')||new Set(collections.map(c=>c.uuid)).size!==collections.length)throw new Error('Invalid stored collections');
  if(!Array.isArray(documents)||documents.length>sampleIds.length||documents.some(d=>!d||!sampleIds.includes(d.sampleId)))throw new Error('Invalid stored documents');
  if(!['preparing','reviewed','approved','filed','paid'].includes(row.stage)||!Array.isArray(resolved)||resolved.some(id=>!taskIds.includes(id))||!Number.isSafeInteger(row.version)||row.version<1)throw new Error('Invalid stored progress');
- return {stage:row.stage,resolved,version:row.version,updatedAt:row.updated_at,revision:row.revision,documents,collections};
+ return {stage:row.stage,resolved,version:row.version,updatedAt:row.updated_at,revision:row.revision,documents,collections,decisions};
 }
 export async function handleProgress(request,db){
  // Identity headers are supplied by Sites dispatch, never by a body or query parameter.
@@ -46,17 +49,22 @@ export async function handleProgress(request,db){
   let body;try{body=JSON.parse(bodyText);}catch{return json({error:'invalid_json'},400);}
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>!['event','version','revision'].includes(k))||!Number.isSafeInteger(body.version)||body.version<0||!(body.revision===null||typeof body.revision==='string'&&body.revision.length<=64))return json({error:'invalid_payload'},400);
   const e=body.event;
-  if(!e||typeof e!=='object'||Array.isArray(e)||Object.keys(e).some(k=>!['type','id','period'].includes(k))||!['RESOLVE','REVIEW','APPROVE','FILE','PAY','RESET','ERASE','ADD_DOCUMENT','CONFIRM_COLLECTION','UNDO_COLLECTION'].includes(e.type)|| (e.type==='RESOLVE'?!taskIds.includes(e.id):['ADD_DOCUMENT','CONFIRM_COLLECTION','UNDO_COLLECTION'].includes(e.type)?!sampleIds.includes(e.id):e.id!==undefined)|| (e.type==='CONFIRM_COLLECTION'?!ledgerPeriods.includes(e.period):e.period!==undefined))return json({error:'invalid_event'},400);
+  if(!e||typeof e!=='object'||Array.isArray(e)||Object.keys(e).some(k=>!['type','id','period'].includes(k))||!['RESOLVE','REVIEW','APPROVE','FILE','PAY','RESET','ERASE','ADD_DOCUMENT','CONFIRM_COLLECTION','UNDO_COLLECTION','CHOOSE_DOCUMENT','REOPEN_CONFLICT'].includes(e.type)|| (e.type==='RESOLVE'?!taskIds.includes(e.id):['ADD_DOCUMENT','CONFIRM_COLLECTION','UNDO_COLLECTION','CHOOSE_DOCUMENT','REOPEN_CONFLICT'].includes(e.type)?!sampleIds.includes(e.id):e.id!==undefined)|| (e.type==='CONFIRM_COLLECTION'?!ledgerPeriods.includes(e.period):e.period!==undefined))return json({error:'invalid_event'},400);
   const row=await db.prepare(SELECT).bind(userId).first();const state=decode(row);
   if(state.version!==body.version||state.revision!==body.revision)return json({error:'version_conflict'},409);
   if(e.type==='ERASE'){
    if(row){const result=await db.prepare('DELETE FROM demo_progress WHERE user_id=? AND version=? AND revision=?').bind(userId,state.version,state.revision).run();if(result.meta.changes!==1)return json({error:'version_conflict'},409);}
    return json({state:decode(null),deleted:true});
   }
-  let documents=state.documents;let collections=state.collections;let documentResult;
+  let documents=state.documents;let collections=state.collections;let decisions=state.decisions;let documentResult;
+  const isDecision=['CHOOSE_DOCUMENT','REOPEN_CONFLICT'].includes(e.type);
+  if(isDecision){
+   try{decisions=decideConflict(documents,decisions,e,new Date().toISOString());}catch(error){return json({error:error.message},422);}
+   if(decisions===state.decisions)return json({state});
+  }
   const isCollection=['CONFIRM_COLLECTION','UNDO_COLLECTION'].includes(e.type);
   if(isCollection){
-   try{collections=collectionTransition(documents,collections,e,new Date().toISOString());}
+   try{collections=collectionTransition(documents,collections,e,new Date().toISOString(),decisions);}
    catch(error){return json({error:error.message},422);}
    if(JSON.stringify(collections)===JSON.stringify(state.collections))return json({state});
   }
@@ -65,15 +73,15 @@ export async function handleProgress(request,db){
    if(documents.some(d=>d.sampleId===e.id)||documentResult.status==='duplicate')return json({state,documentResult});
    documents=[...documents,{...documentResult,processedAt:new Date().toISOString()}];
   }
-  const next=e.type==='ADD_DOCUMENT'||isCollection?{stage:state.stage,resolved:state.resolved}:transition({stage:state.stage,resolved:state.resolved},e);
-  const unchanged=collections===state.collections&&documents===state.documents&&next.stage===state.stage&&JSON.stringify(next.resolved)===JSON.stringify(state.resolved);
+  const next=e.type==='ADD_DOCUMENT'||isCollection||isDecision?{stage:state.stage,resolved:state.resolved}:transition({stage:state.stage,resolved:state.resolved},e);
+  const unchanged=decisions===state.decisions&&collections===state.collections&&documents===state.documents&&next.stage===state.stage&&JSON.stringify(next.resolved)===JSON.stringify(state.resolved);
   if(unchanged){if(e.type==='RESOLVE'&&state.resolved.includes(e.id)||e.type==='RESET')return json({state});return json({error:'invalid_transition'},422);}
   const updatedAt=new Date().toISOString();const version=state.version+1;const revision=crypto.randomUUID();
   const statement=row?
-   db.prepare('UPDATE demo_progress SET stage=?,resolved=?,version=?,updated_at=?,revision=?,documents=?,collections=? WHERE user_id=? AND version=? AND revision=?').bind(next.stage,JSON.stringify(next.resolved),version,updatedAt,revision,JSON.stringify(documents),JSON.stringify(collections),userId,state.version,state.revision):
-   db.prepare('INSERT INTO demo_progress (user_id,stage,resolved,version,updated_at,revision,documents,collections) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(user_id) DO NOTHING').bind(userId,next.stage,JSON.stringify(next.resolved),version,updatedAt,revision,JSON.stringify(documents),JSON.stringify(collections));
+   db.prepare('UPDATE demo_progress SET stage=?,resolved=?,version=?,updated_at=?,revision=?,documents=?,collections=?,decisions=? WHERE user_id=? AND version=? AND revision=?').bind(next.stage,JSON.stringify(next.resolved),version,updatedAt,revision,JSON.stringify(documents),JSON.stringify(collections),JSON.stringify(decisions),userId,state.version,state.revision):
+   db.prepare('INSERT INTO demo_progress (user_id,stage,resolved,version,updated_at,revision,documents,collections,decisions) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(user_id) DO NOTHING').bind(userId,next.stage,JSON.stringify(next.resolved),version,updatedAt,revision,JSON.stringify(documents),JSON.stringify(collections),JSON.stringify(decisions));
   const result=await statement.run();if(result.meta.changes!==1)return json({error:'version_conflict'},409);
-  return json({state:{...next,version,updatedAt,revision,documents,collections},...(documentResult?{documentResult}:{} )});
+  return json({state:{...next,version,updatedAt,revision,documents,collections,decisions},...(documentResult?{documentResult}:{} )});
  }catch{
   // Do not log headers, account details, documents or raw request data.
   console.error('Wedge progress storage unavailable');

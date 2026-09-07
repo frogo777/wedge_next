@@ -4,10 +4,10 @@ Fecha: 2026-09-06. Consolidación técnica de las fases implementadas; no se ini
 
 ## Dos niveles de evidencia
 
-47 pruebas de módulos/API: recorrido, aislamiento con SQLite, documentos, cobros y simulador ISR. Seis pruebas adicionales ejecutan el Worker compilado mediante Miniflare y D1 local:
+56 pruebas de módulos/API: recorrido, aislamiento con SQLite, documentos, decisiones de versiones, cobros y simulador ISR. Seis pruebas adicionales ejecutan el Worker compilado mediante Miniflare y D1 local:
 
 1. Página protegida, respuesta sin sesión, cabeceras y recursos JavaScript/CSS/SVG.
-2. Recorrido completo, lectura real del XML sintético, confirmación de cobro, exportación y aislamiento por cuenta.
+2. Recorrido completo, lectura real del XML sintético, confirmación de cobro, elección de versión en conflicto, exportación y aislamiento por cuenta.
 3. Dos escrituras simultáneas: una se guarda y la otra recibe conflicto.
 4. Eliminación y recreación: el estado antiguo no puede borrar el nuevo.
 5. Reinicio del runtime: recupera exactamente el registro persistido.

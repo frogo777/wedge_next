@@ -30,3 +30,5 @@ Fase 6 iniciada: simulación versionada de ISR mensual, sin IVA ni determinació
 Consolidación: pruebas de integración del Worker/D1 y verificación continua incorporadas. No se avanza a piloto comercial con fases previas incompletas.
 
 Fase 5, incremento de cobros: resumen conectado a documentos guardados, confirmación mensual y exclusión de conflictos. Falta ingesta real, conciliación, pagos parciales y revisión fiscal; no se declara fase completada.
+
+2026-09-07: fase 5 incorpora comparación y elección de versiones conflictivas con historial. Continúan pendientes la ingesta real, autenticidad, conciliación y criterios de salida; no se abre piloto comercial.
