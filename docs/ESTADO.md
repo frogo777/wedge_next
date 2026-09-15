@@ -1,6 +1,65 @@
 # Estado de Wedge
 
-Fecha: 2026-09-06. Proyecto desde cero en `frogo777/wedge_next`.
+Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El historial de incrementos anteriores se conserva debajo.
+
+## Corte de fundamentos — 2026-09-14
+
+### Actualización WDG-002A — revisión posterior
+
+Plugin Cloudflare 1.49.0, Wrangler 4.116.0, Miniflare 4.20260730.0 y tipos 5.20260730.1. Se preserva Vinext 0.0.50 con image-size 2.0.4; Miniflare utiliza sharp 0.35.4 y undici 7.29.0. El árbol completo ahora reporta cero avisos altos/críticos y cuatro moderados de una sola cadena de Drizzle, con excepción y revisión fechada en `docs/security/DEPENDENCIES.md`.
+
+`npm run verify` funciona directamente en Windows: typecheck, 60 pruebas unitarias, build y seis pruebas de Worker/D1. Lint: cero errores y un aviso histórico. Desarrollo local devuelve 302 en `/`, 401 en API anónima y 200 en `app.mjs`; escucha en loopback. CI añade lint y auditoría completa, con matriz Windows/Ubuntu; sus resultados remotos deben comprobarse por separado.
+
+Se corrige el alcance del informe anterior: `npm audit --omit=dev` no certifica el contenido del Worker. Los resultados inferiores de 17 avisos y el bloqueo Bash son históricos, anteriores a este incremento.
+
+Auditoría completa del repositorio, arquitectura, base de datos, documentación, proyectos abiertos, mercado, SAT/RESICO, amenazas, modelo V0 y backlog. El dictamen mantiene a Wedge como demo privada: todavía no recibe archivos de usuarios, no es libro contable y no presenta o paga obligaciones.
+
+```text
+Auditoría y decisiones        ██████████  completa
+Dependencias de producción    ██████████  0 avisos auditados
+Typecheck obligatorio         ██████████  pasa y corre en CI
+Núcleo de datos V0            ██░░░░░░░░  diseñado, sin migración
+Validación con usuarios       ░░░░░░░░░░  pendiente
+```
+
+### Cambio implementado
+
+- Next y `eslint-config-next`: 16.2.6 → 16.3.5.
+- React, React DOM y React Server DOM: 19.2.6 → 19.2.8; este último sí aparece dentro del Worker compilado.
+- Vite: 8.0.13 → 8.3.0.
+- Transitivas vulnerables: `fast-uri` → 3.1.7 y `baseline-browser-mapping` → 2.11.23.
+- Tipos del runtime Cloudflare alineados a 4.20260515.1; binding `DB` declarado.
+- `npm run typecheck` y paso obligatorio de CI añadidos.
+- Sin migración de datos, despliegue o uso de información real.
+
+### Evidencia reproducida desde instalación limpia
+
+| Comprobación | Resultado |
+|---|---:|
+| `npm ci --ignore-scripts --no-audit --no-fund` | Pasa |
+| `npm run typecheck` | Pasa |
+| `npm run test:unit` | 60/60 |
+| `npx vinext build` | Pasa; rutas `/` y `/api/progress` |
+| `node --test tests/integration/worker.test.mjs` | 6/6 |
+| ESLint | 0 errores; 1 aviso preexistente en `page-template.mjs` |
+| `npm audit --omit=dev` | 0 vulnerabilidades reportadas |
+| `npm audit` completo | 11 altas, 5 moderadas, 1 baja en toolchain/dev |
+
+El wrapper de compilación del plugin Sites no pudo resolver el npm global en este Windows; la compilación directa de Vinext sí pasó. `npm run verify` sigue dependiendo de Bash y está registrado como portabilidad pendiente.
+
+### Documentos canónicos
+
+- `docs/audit/FOUNDATION-2026-09-14.md`
+- `docs/research/OPEN-SOURCE-2026-09-14.md`
+- `docs/research/MARKET-2026-09-14.md`
+- `docs/tax/SAT-RESICO-2026.md`
+- `docs/security/THREAT-MODEL-2026-09-14.md`
+- `docs/product/V0-FOUNDATION.md`
+- `docs/BACKLOG.md`
+
+### Próxima tarea
+
+WDG-002A: actualizar en un cambio separado el toolchain Vite/Vinext/Cloudflare y volver a probar compatibilidad. Después, WDG-003 convierte entidad fiscal, procedencia y auditoría en una decisión de arquitectura y migraciones aditivas; antes de crear tablas se revisarán aislamiento, retención, precisión monetaria e invariantes del libro.
 
 ## Fases 3 y 4 — acceso y privacidad de la demo
 

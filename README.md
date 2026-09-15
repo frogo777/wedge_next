@@ -8,6 +8,8 @@ Demo privada del mes fiscal para RESICO. Incluye movimientos ficticios, pendient
 
 No conecta al SAT, no recibe documentos fiscales, no determina obligaciones fiscales finales ni presenta declaraciones o ejecuta pagos. Incluye un simulador local de ISR mensual de alcance limitado. No es todavía un servicio comercial.
 
+La auditoría de fundamentos del 2026-09-14 define el corte actual, el modelo de amenazas, la base fiscal, el V0 y el backlog. Empieza en `docs/audit/FOUNDATION-2026-09-14.md`.
+
 La sección Privacidad permite exportar el registro actual y eliminarlo de la base activa. La eliminación no incluye la cuenta de ChatGPT, descargas ni respaldos del proveedor. Ver `docs/PRIVACIDAD.md` y `docs/OPERACION.md`.
 
 En Movimientos puedes abrir Documentos y probar seis XML sintéticos. Los resultados persisten, se exportan y se eliminan desde Privacidad. No se admiten archivos propios y las lecturas alimentan el resumen mensual de documentos y cobros; no modifican el cálculo fiscal ilustrativo.
@@ -33,8 +35,13 @@ Node.js 24 permite ejecutar las pruebas basadas en `node:sqlite`.
 
 ```bash
 npm ci
+npm run typecheck
 npm run verify
+npm run lint
+npm audit --audit-level=high
 ```
+
+Estos comandos funcionan sin Bash en Windows y Linux. El comando histórico `install:ci` permanece reservado al entorno Linux original. La auditoría incluye desarrollo porque algunas de esas dependencias se incorporan al Worker; ver `docs/security/DEPENDENCIES.md` para la excepción moderada pendiente de Drizzle.
 
 El entorno de Sites incorpora sus propias dependencias y herramientas de compilación. `npm run dev` sirve para desarrollo. Las cabeceras de identidad solo son confiables detrás del despachador de Sites: publicar este Worker directamente sin sustituir la autenticación permitiría suplantaciones. No simular identidades con datos de usuarios reales.
 
