@@ -104,6 +104,8 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-009 — privacidad, recuperación y piloto fundador
 
+**Avance preparatorio WDG-009A:** política del piloto aprobada e investigación oficial; auditoría D1/R2 de sólo lectura con verificación de contenido opcional. Detecta faltantes, alterados y huérfanos sin exponer bytes. Pendientes exportación completa, registro de borrados independiente y restore remoto sintético.
+
 - **Meta / valor:** operar un mes de forma segura y medir si Wedge ahorra trabajo.
 - **Incluye:** retención, exportación/borrado integral, backup/restore sintético, incidentes, QA móvil y tres cierres observados.
 - **Fuera:** lanzamiento público.
