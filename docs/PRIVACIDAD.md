@@ -32,7 +32,7 @@ La sección Privacidad permite descargar el registro actual de la cuenta autenti
 
 La eliminación está condicionada a la versión y revisión leídas por el usuario. Cada escritura genera una revisión aleatoria: una pestaña que conserva un registro eliminado no puede modificar su reemplazo aunque ambos tengan el mismo número de versión. Una pestaña que nunca tuvo registro puede iniciar un nuevo recorrido; la eliminación no revoca sesiones ni prohíbe crear nuevos registros.
 
-La eliminación no alcanza copias históricas del proveedor, registros de infraestructura, la cuenta de ChatGPT ni descargas locales. No se ha verificado la duración de retención ni la capacidad de purga de esas copias. Tampoco hay eliminación automática por antigüedad en esta versión. El núcleo futuro sí coordina el borrado de D1 y R2 activos, pero no cambia esas limitaciones. No prometer borrado universal o inmediato de todos los sistemas.
+La eliminación no alcanza copias históricas del proveedor, registros de infraestructura, la cuenta de ChatGPT ni descargas locales. No se ha verificado la duración de retención ni la capacidad de purga de esas copias. Tampoco hay eliminación automática por antigüedad en esta versión. El núcleo preparatorio coordina el borrado de D1 y R2 activos y conserva 45 días un tombstone de cero bytes con UUID hasheado para impedir que un restore reactive la entidad. No cambia las demás limitaciones ni permite prometer borrado universal o inmediato de todos los sistemas.
 
 ## Requisitos pendientes antes de atender clientes
 

@@ -39,6 +39,80 @@ const activeEntity = `NOT EXISTS (SELECT 1 FROM entity_deletions d WHERE d.entit
 const sourcePath = (entity: string, hash: string) => `entities/${entity}/sources/${hash}`;
 export const MAX_SOURCES_PER_ENTITY = 1000;
 export const MAX_STORAGE_AUDIT_OBJECTS = 2000;
+export const DELETION_TOMBSTONE_PREFIX = 'deletions/v1/';
+export const DELETION_TOMBSTONE_RETENTION_DAYS = 45;
+const EMPTY_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+
+async function deletionTombstoneKey(entity: string) {
+  const value = new TextEncoder().encode(`wedge:deletion:v1:${entity}`);
+  return `${DELETION_TOMBSTONE_PREFIX}${(await sha256(value)).hex}`;
+}
+
+async function readDeletionTombstone(bucket: R2Bucket, entity: string) {
+  const objectKey = await deletionTombstoneKey(entity);
+  try {
+    const object = await bucket.get(objectKey);
+    if (!object) return false;
+    if (object.size !== 0 || object.httpMetadata?.contentType !== 'application/octet-stream'
+      || object.httpMetadata?.cacheControl !== 'no-store'
+      || object.customMetadata?.format !== 'wedge-deletion-v1') throw new DomainError('storage_error');
+    const body = new Uint8Array(await object.arrayBuffer());
+    if (body.byteLength !== 0) throw new DomainError('storage_error');
+    return true;
+  } catch (error) {
+    if (error instanceof DomainError) throw error;
+    throw new DomainError('storage_error');
+  }
+}
+
+// Recovery-only lookup. It deliberately has no user identity and must never be wired to HTTP.
+export async function hasEntityDeletionTombstone(bucket: R2Bucket, entityId: string) {
+  return readDeletionTombstone(bucket, key(entityId));
+}
+
+async function writeDeletionTombstone(bucket: R2Bucket, entity: string) {
+  const objectKey = await deletionTombstoneKey(entity);
+  try {
+    const stored = await bucket.put(objectKey, new Uint8Array(), {
+      onlyIf: { etagDoesNotMatch: '*' },
+      httpMetadata: { contentType: 'application/octet-stream', cacheControl: 'no-store' },
+      customMetadata: { format: 'wedge-deletion-v1' },
+      sha256: EMPTY_SHA256,
+    });
+    if (!stored && !(await readDeletionTombstone(bucket, entity))) throw new DomainError('storage_error');
+  } catch (error) {
+    if (error instanceof DomainError) throw error;
+    throw new DomainError('storage_error');
+  }
+}
+
+async function listEntitySourceObjectKeys(bucket: R2Bucket, entity: string) {
+  const prefix = `entities/${entity}/sources/`, keys: string[] = [];
+  try {
+    let cursor: string | undefined;
+    do {
+      const page = await bucket.list({ prefix, cursor, limit: 1000 });
+      for (const object of page.objects) {
+        if (!object.key.startsWith(prefix)) throw new DomainError('storage_error');
+        keys.push(object.key);
+      }
+      if (keys.length > MAX_STORAGE_AUDIT_OBJECTS) throw new DomainError('limit_exceeded');
+      if (!page.truncated) break;
+      if (!page.cursor || page.cursor === cursor) throw new DomainError('storage_error');
+      cursor = page.cursor;
+    } while (true);
+    return keys;
+  } catch (error) {
+    if (error instanceof DomainError) throw error;
+    throw new DomainError('storage_error');
+  }
+}
+
+async function deleteObjectKeys(bucket: R2Bucket, keys: string[]) {
+  try {
+    for (let offset = 0; offset < keys.length; offset += 1000) await bucket.delete(keys.slice(offset, offset + 1000));
+  } catch { throw new DomainError('storage_error'); }
+}
 
 export async function createEntity(db: D1Database, identity: Identity) {
   const user = actor(identity), id = crypto.randomUUID(), at = new Date().toISOString();
@@ -291,21 +365,89 @@ export async function eraseEntity(db: D1Database, bucket: R2Bucket, identity: Id
       ON CONFLICT(entity_id) DO NOTHING`).bind(entity, user, at, entity, entity, user),
     db.prepare(`UPDATE source_objects SET state = 'deleting' WHERE entity_id = ? AND ${permitted}`).bind(entity, entity, user),
     db.prepare(`SELECT object_key FROM source_objects WHERE entity_id = ? AND ${permitted}
-      UNION SELECT object_key FROM source_upload_attempts WHERE entity_id = ? AND ${permitted}`).bind(entity, entity, user, entity, entity, user),
+      UNION SELECT object_key FROM source_upload_attempts WHERE entity_id = ? AND ${permitted}
+      LIMIT ${MAX_STORAGE_AUDIT_OBJECTS + 1}`).bind(entity, entity, user, entity, entity, user),
     db.prepare(`SELECT e.id FROM financial_entities e JOIN entity_deletions d ON d.entity_id = e.id
       WHERE e.id = ? AND ${permitted}`).bind(entity, entity, user),
   ]);
   if (!started[3].results[0]) throw new DomainError('not_found');
-  const keys = started[2].results.map(row => row.object_key).filter((value): value is string => typeof value === 'string');
-  try {
-    for (let offset = 0; offset < keys.length; offset += 1000) await bucket.delete(keys.slice(offset, offset + 1000));
-  } catch { throw new DomainError('storage_error'); }
+  // D1 marks the entity first so a failed registry write leaves access blocked and retryable.
+  await writeDeletionTombstone(bucket, entity);
+  if (started[2].results.length > MAX_STORAGE_AUDIT_OBJECTS) throw new DomainError('limit_exceeded');
+  const tracked = started[2].results.map(row => row.object_key)
+    .filter((value): value is string => typeof value === 'string');
+  if (tracked.length !== started[2].results.length
+    || tracked.some(value => !value.startsWith(`entities/${entity}/sources/`))) {
+    throw new DomainError('storage_error');
+  }
+  const keys = [...new Set([...tracked, ...await listEntitySourceObjectKeys(bucket, entity)])];
+  if (keys.length > MAX_STORAGE_AUDIT_OBJECTS) throw new DomainError('limit_exceeded');
+  await deleteObjectKeys(bucket, keys);
   const [removed] = await transact(db, [
     db.prepare(`DELETE FROM financial_entities WHERE id = ?
       AND EXISTS (SELECT 1 FROM entity_deletions d WHERE d.entity_id = ?)
       AND ${permitted}`).bind(entity, entity, entity, user),
   ]);
   if (removed.meta.changes === 0) throw new DomainError('not_found');
+}
+
+// Offline recovery operation. Writes must remain stopped until every restored entity has
+// been checked; this function must never be exposed through a user-facing route.
+export async function reconcileRestoredEntityDeletion(db: D1Database, bucket: R2Bucket, entityId: string) {
+  const entity = key(entityId);
+  if (!(await readDeletionTombstone(bucket, entity))) {
+    return { entityId: entity, status: 'retained' as const, objectsRemoved: 0 };
+  }
+  const at = new Date().toISOString();
+  const started = await transact(db, [
+    db.prepare(`INSERT INTO entity_deletions (entity_id, actor_id, started_at)
+      SELECT id, 'recovery:tombstone', ? FROM financial_entities WHERE id = ?
+      ON CONFLICT(entity_id) DO NOTHING`).bind(at, entity),
+    db.prepare("UPDATE source_objects SET state = 'deleting' WHERE entity_id = ?").bind(entity),
+    db.prepare(`SELECT e.id FROM financial_entities e JOIN entity_deletions d ON d.entity_id = e.id
+      WHERE e.id = ?`).bind(entity),
+  ]);
+  const keys = await listEntitySourceObjectKeys(bucket, entity);
+  await deleteObjectKeys(bucket, keys);
+  if (!started[2].results[0]) {
+    return { entityId: entity, status: 'absent' as const, objectsRemoved: keys.length };
+  }
+  const [removed] = await transact(db, [
+    db.prepare(`DELETE FROM financial_entities WHERE id = ?
+      AND EXISTS (SELECT 1 FROM entity_deletions d WHERE d.entity_id = ?)`)
+      .bind(entity, entity),
+  ]);
+  if (removed.meta.changes === 0) throw new DomainError('storage_error');
+  return { entityId: entity, status: 'removed' as const, objectsRemoved: keys.length };
+}
+
+export async function reconcileRestoredEntityDeletionsPage(db: D1Database, bucket: R2Bucket,
+  options: Readonly<{ after?: string; limit?: number }> = {}) {
+  if (!options || typeof options !== 'object') throw new DomainError('invalid_input');
+  const after = options.after === undefined ? null : key(options.after);
+  const limit = options.limit ?? 50;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new DomainError('invalid_input');
+  const [page] = await transact(db, [
+    db.prepare(`SELECT id FROM financial_entities
+      WHERE (? IS NULL OR id > ?) ORDER BY id LIMIT ?`).bind(after, after, limit + 1),
+  ]);
+  const rows = page.results.slice(0, limit);
+  const ids = rows.map(row => {
+    if (typeof row.id !== 'string') throw new DomainError('storage_error');
+    return row.id;
+  });
+  const counts = { removed: 0, retained: 0, absent: 0, objectsRemoved: 0 };
+  for (const id of ids) {
+    const result = await reconcileRestoredEntityDeletion(db, bucket, id);
+    counts[result.status] += 1;
+    counts.objectsRemoved += result.objectsRemoved;
+  }
+  return {
+    formatVersion: 1,
+    scanned: ids.length,
+    ...counts,
+    nextCursor: page.results.length > limit ? ids.at(-1)! : null,
+  };
 }
 
 type AuditFinding = Readonly<{

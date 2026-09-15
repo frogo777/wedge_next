@@ -20,7 +20,7 @@ La API recibe eventos, nunca un estado fiscal arbitrario. Usa consultas preparad
 
 ### Núcleo de originales privados, sin ruta
 
-La evolución preparatoria separa datos estructurados en D1 y bytes originales en el binding privado R2 `BUCKET`. Un intento se registra antes de la carga; la finalización enlaza hash, recibo y auditoría. La lectura vuelve a calcular SHA-256 y autoriza otra vez después de obtener los bytes. La exportación fija un manifiesto D1 y entrega cada original verificado de forma incremental. El borrado bloquea acceso, elimina R2 y después aplica la cascada D1; ambos fallos son reintentables. Las claves de objeto sólo contienen UUID y hash.
+La evolución preparatoria separa datos estructurados en D1 y bytes originales en el binding privado R2 `BUCKET`. Un intento se registra antes de la carga; la finalización enlaza hash, recibo y auditoría. La lectura vuelve a calcular SHA-256 y autoriza otra vez después de obtener los bytes. La exportación fija un manifiesto D1 y entrega cada original verificado de forma incremental. El borrado bloquea acceso, registra primero una huella con política aprobada de 45 días bajo `deletions/v1/`, elimina todos los objetos de la entidad y después aplica la cascada D1; los fallos son reintentables. El reconciliador offline aplica esas huellas después de un restore. Las claves de objeto sólo contienen UUID y hash; el tombstone contiene únicamente una huella del UUID y cero bytes.
 
 Este módulo no está conectado a la API ni desplegado. No recibe documentos reales y no modifica el inventario de la demo. [ADR 0002](decisions/0002-private-source-storage.md) detalla cuotas, concurrencia, costos y las condiciones de restauración pendientes; [EXPORTACION.md](EXPORTACION.md) define el formato de salida.
 

@@ -1,6 +1,6 @@
 # ADR 0003 — Registro de borrados resistente a restauraciones
 
-Fecha: 2026-09-14. Estado: **propuesta pendiente de aprobación del fundador**. No configura locks, lifecycle, recursos remotos ni credenciales.
+Fecha: 2026-09-14. Estado: **aprobada por el fundador e implementada localmente con datos sintéticos**. No configura locks, lifecycle, recursos remotos ni credenciales.
 
 ## Problema
 
@@ -27,7 +27,7 @@ Fuentes oficiales consultadas el 2026-09-14: [D1 Time Travel](https://developers
 | Tombstone R2 indefinido | Cubre respaldos futuros desconocidos | Retención permanente sin necesidad demostrada | Descartada para el piloto |
 | Sin registro | Cero datos adicionales | Puede reactivar datos borrados | Inaceptable antes de restores |
 
-## Política propuesta para el piloto
+## Política aprobada para el piloto
 
 Por cada entidad que entra en `deleting`, escribir antes del borrado final un objeto de cero bytes:
 
@@ -45,10 +45,12 @@ deletions/v1/{sha256("wedge:deletion:v1:" + entity_uuid)}
 
 ## Costo y límite operativo
 
-Cada eliminación añade una escritura clase A y un objeto mínimo temporal; la reconciliación usa lecturas clase B. R2 Standard incluye actualmente 10 GB-mes, un millón de operaciones clase A y diez millones clase B al mes. El piloto debería caber holgadamente, pero el nivel gratuito se comparte con el resto de la cuenta y no constituye una promesa de costo cero.
+Cada eliminación añade un `PutObject` y al menos un `ListObjects`, ambos clase A; cada página adicional suma otro listado. Validar un tombstone existente usa una lectura clase B y los borrados no tienen cargo de operación. R2 Standard incluye actualmente 10 GB-mes, un millón de operaciones clase A y diez millones clase B al mes. El piloto debería caber holgadamente, pero el nivel gratuito se comparte con el resto de la cuenta y no constituye una promesa de costo cero.
 
-Configurar el lock requiere acceso administrativo al bucket y hace que el tombstone no pueda borrarse durante 45 días. El código y las pruebas locales pueden prepararse sin credenciales; la configuración remota y el simulacro se harán sólo después de aprobar esta excepción mínima de retención.
+Configurar el lock requiere acceso administrativo al bucket. La excepción ya fue aprobada; la aplicación Sites está activa, pero su manifiesto sólo expone el binding lógico `BUCKET` y no el nombre administrativo del bucket ni sus reglas. El CLI local de Cloudflare tampoco tiene una sesión autenticada. El [runbook de nube](../runbooks/R2-DELETION-POLICY.md) define el cambio exacto sin confundir el nombre local de Miniflare con el recurso remoto.
 
-## Decisión requerida
+## Decisión aprobada
 
-Aprobar o rechazar: **conservar durante 45 días, en el R2 privado existente, un tombstone de cero bytes cuyo nombre sea la huella SHA-256 del UUID aleatorio de la entidad; aplicar lock y lifecycle sólo al prefijo `deletions/v1/`.**
+El fundador aprobó: **conservar durante 45 días, en el R2 privado existente, un tombstone de cero bytes cuyo nombre sea la huella SHA-256 del UUID aleatorio de la entidad; aplicar lock y lifecycle sólo al prefijo `deletions/v1/`.**
+
+La implementación marca primero la entidad como `deleting`, escribe el tombstone con creación condicional y checksum, y sólo entonces elimina todos los objetos del prefijo de la entidad y D1. Un fallo conserva la entidad bloqueada y reintentable. La consulta de recuperación valida que el objeto tenga cero bytes, formato y cabeceras esperadas; el reconciliador offline elimina entidades restauradas y objetos huérfanos antes de reabrir escrituras. El coordinador recorre D1 por páginas acotadas y permite reintentos idempotentes. Estas funciones permanecen aisladas de HTTP. Falta comprobar lock/lifecycle y el proceso completo en un recurso remoto sintético.

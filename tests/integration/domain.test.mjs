@@ -4,13 +4,19 @@ import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Miniflare } from 'miniflare';
 import { createEntity, recordSource, readSource, exportEntity, exportEntityFiles, eraseEntity, auditEntityStorage,
-  MAX_SOURCES_PER_ENTITY } from '../../packages/domain/repository.ts';
+  hasEntityDeletionTombstone, reconcileRestoredEntityDeletion, reconcileRestoredEntityDeletionsPage,
+  MAX_SOURCES_PER_ENTITY, DELETION_TOMBSTONE_PREFIX, DELETION_TOMBSTONE_RETENTION_DAYS
+} from '../../packages/domain/repository.ts';
 
 // Real D1 semantics in an isolated local runtime. No HTTP route or real tax data.
 const alice = { userId: 'synthetic-alice' }, bob = { userId: 'synthetic-bob' };
 const bytes = text => new TextEncoder().encode(text);
 const hashAbc = 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad';
 const objectPath = (entity, hash) => `entities/${entity}/sources/${hash}`;
+const tombstonePath = async entity => {
+  const value = bytes(`wedge:deletion:v1:${entity}`);
+  return `${DELETION_TOMBSTONE_PREFIX}${Buffer.from(await crypto.subtle.digest('SHA-256', value)).toString('hex')}`;
+};
 const code = expected => error => error.code === expected && error.message === expected;
 let runtime, db, bucket;
 function wrapBucket(overrides) {
@@ -39,7 +45,7 @@ async function migrate(target) {
 before(async () => {
   runtime = new Miniflare({ cf: false, modules: true,
     script: 'export default { fetch() { return new Response("synthetic"); } };',
-    compatibilityDate: '2026-05-15', d1Databases: ['DB', 'ROLLBACK'], r2Buckets: ['BUCKET'],
+    compatibilityDate: '2026-05-15', d1Databases: ['DB', 'ROLLBACK', 'RECOVERY'], r2Buckets: ['BUCKET'],
   });
   db = await runtime.getD1Database('DB');
   bucket = await runtime.getR2Bucket('BUCKET');
@@ -178,6 +184,7 @@ test('Dominio: otra cuenta no lee, importa ni borra; ausencia devuelve el mismo 
     await assert.rejects(recordSource(db, bucket, bob, id, 'forged', bytes('abc')), code('not_found'));
     await assert.rejects(eraseEntity(db, bucket, bob, id), code('not_found'));
   }
+  assert.equal(await hasEntityDeletionTombstone(bucket, entity.id), false);
   await assert.rejects(readSource(db, bucket, bob, entity.id, receipt.sha256), code('not_found'));
   assert.deepEqual(await exportEntity(db, alice, entity.id), before);
 });
@@ -251,11 +258,110 @@ test('Dominio: un borrado R2 fallido queda visible y se puede reintentar', async
   await assert.rejects(eraseEntity(db, unavailable, alice, entity.id), code('storage_error'));
   const pending = await exportEntity(db, alice, entity.id);
   assert.equal(pending.entity.state, 'deleting'); assert.equal(pending.sources[0].storage_state, 'deleting');
+  assert.equal(await hasEntityDeletionTombstone(bucket, entity.id), true);
   await assert.rejects(exportEntityFiles(db, bucket, alice, entity.id).next(), code('not_found'));
   await assert.rejects(readSource(db, bucket, alice, entity.id, receipt.sha256), code('not_found'));
   await eraseEntity(db, bucket, alice, entity.id);
   assert.equal(await bucket.head(objectPath(entity.id, receipt.sha256)), null);
   await assert.rejects(exportEntity(db, alice, entity.id), code('not_found'));
+});
+
+test('Dominio: un fallo al registrar el tombstone bloquea acceso y conserva originales para reintento', async () => {
+  const entity = await createEntity(db, alice);
+  const receipt = await recordSource(db, bucket, alice, entity.id, 'registry-retry', bytes('abc'));
+  const unavailable = wrapBucket({ put: async key => {
+    if (key.startsWith(DELETION_TOMBSTONE_PREFIX)) throw new Error('synthetic registry detail');
+    throw new Error('unexpected put');
+  } });
+  await assert.rejects(eraseEntity(db, unavailable, alice, entity.id), code('storage_error'));
+  assert.equal((await exportEntity(db, alice, entity.id)).entity.state, 'deleting');
+  assert.notEqual(await bucket.head(objectPath(entity.id, receipt.sha256)), null);
+  assert.equal(await hasEntityDeletionTombstone(bucket, entity.id), false);
+  await eraseEntity(db, bucket, alice, entity.id);
+  assert.equal(await hasEntityDeletionTombstone(bucket, entity.id), true);
+  assert.equal(await bucket.head(objectPath(entity.id, receipt.sha256)), null);
+});
+
+test('Dominio: tombstone mínimo no revela el UUID y sobrevive una restauración D1 sintética', async () => {
+  assert.equal(DELETION_TOMBSTONE_RETENTION_DAYS, 45);
+  const untouched = await createEntity(db, alice);
+  assert.deepEqual(await reconcileRestoredEntityDeletion(db, bucket, untouched.id),
+    { entityId: untouched.id, status: 'retained', objectsRemoved: 0 });
+  assert.equal((await exportEntity(db, alice, untouched.id)).entity.state, 'active');
+
+  const entity = await createEntity(db, alice);
+  await eraseEntity(db, bucket, alice, entity.id);
+  const path = await tombstonePath(entity.id);
+  const page = await bucket.list({ prefix: DELETION_TOMBSTONE_PREFIX });
+  assert.ok(page.objects.some(object => object.key === path));
+  assert.equal(path.includes(entity.id), false);
+  const object = await bucket.get(path);
+  assert.equal(object.size, 0); assert.equal((await object.arrayBuffer()).byteLength, 0);
+  assert.equal(object.httpMetadata.contentType, 'application/octet-stream');
+  assert.equal(object.httpMetadata.cacheControl, 'no-store');
+  assert.deepEqual(object.customMetadata, { format: 'wedge-deletion-v1' });
+
+  // Simula que Time Travel revivió la entidad sin tocar el registro independiente en R2.
+  await db.prepare('INSERT INTO financial_entities (id, created_at) VALUES (?, ?)')
+    .bind(entity.id, entity.createdAt).run();
+  const restoredOrphan = objectPath(entity.id, hashAbc);
+  await bucket.put(restoredOrphan, bytes('restored-orphan'));
+  assert.equal(await hasEntityDeletionTombstone(bucket, entity.id), true);
+  assert.deepEqual(await reconcileRestoredEntityDeletion(db, bucket, entity.id),
+    { entityId: entity.id, status: 'removed', objectsRemoved: 1 });
+  assert.equal(await db.prepare('SELECT id FROM financial_entities WHERE id = ?').bind(entity.id).first(), null);
+  assert.equal(await bucket.head(restoredOrphan), null);
+  assert.equal(await hasEntityDeletionTombstone(bucket, entity.id), true);
+
+  await bucket.put(restoredOrphan, bytes('late-orphan'));
+  assert.deepEqual(await reconcileRestoredEntityDeletion(db, bucket, entity.id),
+    { entityId: entity.id, status: 'absent', objectsRemoved: 1 });
+  assert.equal(await bucket.head(restoredOrphan), null);
+});
+
+test('Dominio: un tombstone preexistente alterado impide confirmar el borrado', async () => {
+  const entity = await createEntity(db, alice);
+  const receipt = await recordSource(db, bucket, alice, entity.id, 'registry-corrupt', bytes('abc'));
+  const path = await tombstonePath(entity.id);
+  await bucket.put(path, bytes('forged'));
+  await assert.rejects(eraseEntity(db, bucket, alice, entity.id), code('storage_error'));
+  assert.equal((await exportEntity(db, alice, entity.id)).entity.state, 'deleting');
+  assert.notEqual(await bucket.head(objectPath(entity.id, receipt.sha256)), null);
+  await assert.rejects(hasEntityDeletionTombstone(bucket, entity.id), code('storage_error'));
+  await bucket.delete(path);
+  await eraseEntity(db, bucket, alice, entity.id);
+});
+
+test('Dominio: reconciliación paginada recorre una restauración completa con límites', async () => {
+  const recoveryDb = await runtime.getD1Database('RECOVERY');
+  await migrate(recoveryDb);
+  await recoveryDb.prepare('DELETE FROM financial_entities').run();
+  const entities = await Promise.all([
+    createEntity(recoveryDb, alice), createEntity(recoveryDb, alice), createEntity(recoveryDb, alice),
+  ]);
+  const deleted = entities[1];
+  await eraseEntity(recoveryDb, bucket, alice, deleted.id);
+  await recoveryDb.prepare('INSERT INTO financial_entities (id, created_at) VALUES (?, ?)')
+    .bind(deleted.id, deleted.createdAt).run();
+  const restoredOrphan = objectPath(deleted.id, hashAbc);
+  await bucket.put(restoredOrphan, bytes('restored-page-orphan'));
+
+  const totals = { scanned: 0, removed: 0, retained: 0, absent: 0, objectsRemoved: 0 };
+  let after;
+  do {
+    const report = await reconcileRestoredEntityDeletionsPage(recoveryDb, bucket, { after, limit: 1 });
+    assert.equal(report.formatVersion, 1);
+    for (const field of Object.keys(totals)) totals[field] += report[field];
+    after = report.nextCursor ?? undefined;
+  } while (after);
+
+  assert.deepEqual(totals, { scanned: 3, removed: 1, retained: 2, absent: 0, objectsRemoved: 1 });
+  assert.equal(await recoveryDb.prepare('SELECT id FROM financial_entities WHERE id = ?').bind(deleted.id).first(), null);
+  assert.equal((await recoveryDb.prepare('SELECT count(*) AS n FROM financial_entities').first()).n, 2);
+  assert.equal(await bucket.head(restoredOrphan), null);
+  await assert.rejects(reconcileRestoredEntityDeletionsPage(recoveryDb, bucket, { limit: 0 }), code('invalid_input'));
+  await assert.rejects(reconcileRestoredEntityDeletionsPage(recoveryDb, bucket, { limit: 101 }), code('invalid_input'));
+  await assert.rejects(reconcileRestoredEntityDeletionsPage(recoveryDb, bucket, { after: '*' }), code('invalid_input'));
 });
 
 test('Dominio: borrar durante una carga no deja un objeto huérfano', async () => {
@@ -294,10 +400,19 @@ test('Dominio: borrado alcanza todas las filas activas propias y conserva otras 
   const a = await createEntity(db, alice), b = await createEntity(db, bob);
   await recordSource(db, bucket, alice, a.id, 'remove', bytes('abc'));
   await recordSource(db, bucket, bob, b.id, 'keep', bytes('abc'));
+  const orphan = objectPath(a.id, 'f'.repeat(64));
+  await bucket.put(orphan, bytes('synthetic-orphan'));
   const expected = await exportEntity(db, bob, b.id);
-  await eraseEntity(db, bucket, alice, a.id);
+  let deletionPages = 0;
+  const paged = wrapBucket({ list: options => {
+    deletionPages += 1;
+    return bucket.list({ ...options, limit: 1 });
+  } });
+  await eraseEntity(db, paged, alice, a.id);
+  assert.equal(deletionPages, 2);
   await assert.rejects(exportEntity(db, alice, a.id), code('not_found'));
   assert.equal(await bucket.head(objectPath(a.id, hashAbc)), null);
+  assert.equal(await bucket.head(orphan), null);
   assert.notEqual(await bucket.head(objectPath(b.id, hashAbc)), null);
   for (const table of ['entity_memberships', 'source_artifacts', 'source_objects', 'source_upload_attempts', 'entity_deletions', 'import_receipts', 'audit_events']) {
     assert.equal((await db.prepare(`SELECT count(*) AS n FROM ${table} WHERE entity_id = ?`).bind(a.id).first()).n, 0);
