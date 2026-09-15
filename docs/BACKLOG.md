@@ -40,6 +40,8 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-003 — entidad fiscal, procedencia y auditoría
 
+**Estado: núcleo preparado, activación pendiente.** [ADR 0001](decisions/0001-entity-provenance.md), cinco tablas aditivas, repositorio y diez pruebas D1 sintéticas. Se modela una recepción por archivo/comando; un lote de múltiples archivos se coordinará en WDG-004. No se persiste RFC ni original; fuentes marcadas `metadata_only`. Falta conectar rutas después de resolver almacenamiento y privacidad, y desplegar la migración mediante el flujo de Sites.
+
 - **Meta / valor:** aislar cada contribuyente y explicar cada cambio.
 - **Incluye:** ADR/invariantes, migraciones aditivas para entity/membership/import/artifact/audit; repositorios transaccionales.
 - **Fuera:** migrar la demo JSON o aceptar datos reales.

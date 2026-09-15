@@ -1,4 +1,5 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+export * from './domain-schema';
 export const demoProgress = sqliteTable('demo_progress', {
   userId: text('user_id').primaryKey().notNull(),
   stage: text('stage').notNull(),

@@ -1,0 +1,435 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "fc141d9a-f365-4cb2-a4cc-40a0d0180985",
+  "prevId": "c1079ec4-e323-40fe-a4d4-8494cd727307",
+  "tables": {
+    "demo_progress": {
+      "name": "demo_progress",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stage": {
+          "name": "stage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resolved": {
+          "name": "resolved",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "documents": {
+          "name": "documents",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "collections": {
+          "name": "collections",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "decisions": {
+          "name": "decisions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "revision": {
+          "name": "revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'legacy'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "audit_events": {
+      "name": "audit_events",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "command_id": {
+          "name": "command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "audit_events_entity_id_financial_entities_id_fk": {
+          "name": "audit_events_entity_id_financial_entities_id_fk",
+          "tableFrom": "audit_events",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "audit_events_entity_id_command_id_import_receipts_entity_id_command_id_fk": {
+          "name": "audit_events_entity_id_command_id_import_receipts_entity_id_command_id_fk",
+          "tableFrom": "audit_events",
+          "tableTo": "import_receipts",
+          "columnsFrom": [
+            "entity_id",
+            "command_id"
+          ],
+          "columnsTo": [
+            "entity_id",
+            "command_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "audit_events_entity_id_event_id_pk": {
+          "columns": [
+            "entity_id",
+            "event_id"
+          ],
+          "name": "audit_events_entity_id_event_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "audit_kind": {
+          "name": "audit_kind",
+          "value": "(\"audit_events\".\"kind\" = 'entity_created' AND \"audit_events\".\"command_id\" IS NULL) OR (\"audit_events\".\"kind\" = 'source_received' AND \"audit_events\".\"command_id\" IS NOT NULL)"
+        }
+      }
+    },
+    "financial_entities": {
+      "name": "financial_entities",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "import_receipts": {
+      "name": "import_receipts",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "command_id": {
+          "name": "command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sha256": {
+          "name": "sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "import_receipts_entity_id_financial_entities_id_fk": {
+          "name": "import_receipts_entity_id_financial_entities_id_fk",
+          "tableFrom": "import_receipts",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "import_receipts_entity_id_sha256_source_artifacts_entity_id_sha256_fk": {
+          "name": "import_receipts_entity_id_sha256_source_artifacts_entity_id_sha256_fk",
+          "tableFrom": "import_receipts",
+          "tableTo": "source_artifacts",
+          "columnsFrom": [
+            "entity_id",
+            "sha256"
+          ],
+          "columnsTo": [
+            "entity_id",
+            "sha256"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "import_receipts_entity_id_command_id_pk": {
+          "columns": [
+            "entity_id",
+            "command_id"
+          ],
+          "name": "import_receipts_entity_id_command_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "entity_memberships": {
+      "name": "entity_memberships",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'owner'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "entity_memberships_entity_id_financial_entities_id_fk": {
+          "name": "entity_memberships_entity_id_financial_entities_id_fk",
+          "tableFrom": "entity_memberships",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "entity_memberships_entity_id_user_id_pk": {
+          "columns": [
+            "entity_id",
+            "user_id"
+          ],
+          "name": "entity_memberships_entity_id_user_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "membership_role": {
+          "name": "membership_role",
+          "value": "\"entity_memberships\".\"role\" = 'owner'"
+        }
+      }
+    },
+    "source_artifacts": {
+      "name": "source_artifacts",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sha256": {
+          "name": "sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "byte_length": {
+          "name": "byte_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "storage_state": {
+          "name": "storage_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'metadata_only'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_artifacts_entity_id_financial_entities_id_fk": {
+          "name": "source_artifacts_entity_id_financial_entities_id_fk",
+          "tableFrom": "source_artifacts",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_artifacts_entity_id_sha256_pk": {
+          "columns": [
+            "entity_id",
+            "sha256"
+          ],
+          "name": "source_artifacts_entity_id_sha256_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "source_hash": {
+          "name": "source_hash",
+          "value": "length(\"source_artifacts\".\"sha256\") = 64 AND \"source_artifacts\".\"sha256\" NOT GLOB '*[^0-9a-f]*'"
+        },
+        "source_size": {
+          "name": "source_size",
+          "value": "\"source_artifacts\".\"byte_length\" BETWEEN 1 AND 131072"
+        },
+        "source_storage": {
+          "name": "source_storage",
+          "value": "\"source_artifacts\".\"storage_state\" = 'metadata_only'"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
