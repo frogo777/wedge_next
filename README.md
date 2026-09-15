@@ -37,8 +37,11 @@ Node.js 24 permite ejecutar las pruebas basadas en `node:sqlite`.
 npm ci
 npm run typecheck
 npm run verify
-npm audit --omit=dev
+npm run lint
+npm audit --audit-level=high
 ```
+
+Estos comandos funcionan sin Bash en Windows y Linux. El comando histórico `install:ci` permanece reservado al entorno Linux original. La auditoría incluye desarrollo porque algunas de esas dependencias se incorporan al Worker; ver `docs/security/DEPENDENCIES.md` para la excepción moderada pendiente de Drizzle.
 
 El entorno de Sites incorpora sus propias dependencias y herramientas de compilación. `npm run dev` sirve para desarrollo. Las cabeceras de identidad solo son confiables detrás del despachador de Sites: publicar este Worker directamente sin sustituir la autenticación permitiría suplantaciones. No simular identidades con datos de usuarios reales.
 

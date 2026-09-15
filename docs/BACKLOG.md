@@ -28,7 +28,7 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-002A — actualizar el toolchain vulnerable
 
-**Estado: iniciada el 2026-09-14.** Vite subió de 8.0.13 a 8.3.0 y cerró sus avisos directos. El resto requiere actualizar de forma coordinada Cloudflare/Vinext/Miniflare/Drizzle.
+**Estado: completada con excepción documentada el 2026-09-14.** Plugin Cloudflare 1.49.0, Wrangler 4.116.0, Miniflare 4.20260730.0 y sustituciones acotadas: cero avisos altos/críticos en todo el árbol; cuatro moderados de una cadena Drizzle. Ver [alcance y excepción](security/DEPENDENCIES.md). Comandos portátiles y puertas de lint/auditoría incorporadas a CI Windows/Ubuntu.
 
 - **Meta / valor:** reducir riesgo en desarrollo y CI sin desestabilizar el runtime de Sites.
 - **Incluye:** Vite, plugin Cloudflare, Wrangler y transitivas con parches compatibles; evaluar Vinext y React Server DOM por separado.

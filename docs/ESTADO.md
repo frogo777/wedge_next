@@ -4,6 +4,14 @@ Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Corte de fundamentos — 2026-09-14
 
+### Actualización WDG-002A — revisión posterior
+
+Plugin Cloudflare 1.49.0, Wrangler 4.116.0, Miniflare 4.20260730.0 y tipos 5.20260730.1. Se preserva Vinext 0.0.50 con image-size 2.0.4; Miniflare utiliza sharp 0.35.4 y undici 7.29.0. El árbol completo ahora reporta cero avisos altos/críticos y cuatro moderados de una sola cadena de Drizzle, con excepción y revisión fechada en `docs/security/DEPENDENCIES.md`.
+
+`npm run verify` funciona directamente en Windows: typecheck, 60 pruebas unitarias, build y seis pruebas de Worker/D1. Lint: cero errores y un aviso histórico. Desarrollo local devuelve 302 en `/`, 401 en API anónima y 200 en `app.mjs`; escucha en loopback. CI añade lint y auditoría completa, con matriz Windows/Ubuntu; sus resultados remotos deben comprobarse por separado.
+
+Se corrige el alcance del informe anterior: `npm audit --omit=dev` no certifica el contenido del Worker. Los resultados inferiores de 17 avisos y el bloqueo Bash son históricos, anteriores a este incremento.
+
 Auditoría completa del repositorio, arquitectura, base de datos, documentación, proyectos abiertos, mercado, SAT/RESICO, amenazas, modelo V0 y backlog. El dictamen mantiene a Wedge como demo privada: todavía no recibe archivos de usuarios, no es libro contable y no presenta o paga obligaciones.
 
 ```text
