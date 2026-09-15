@@ -22,9 +22,9 @@ Los importes del simulador ISR se procesan en memoria del navegador y no se env�
 
 ## Núcleo privado preparado, todavía inactivo
 
-El fundador decidió que los originales futuros también se conserven en la nube privada de Wedge. [ADR 0002](decisions/0002-private-source-storage.md) prepara D1 para propiedad/auditoría y R2 para bytes: claves sin RFC o nombre de archivo, acceso sólo desde servidor, verificación SHA-256 al leer y borrado activo R2 antes de D1. El máximo preparatorio es 128 KiB por XML y 1,000 fuentes distintas por entidad.
+El fundador decidió que los originales futuros también se conserven en la nube privada de Wedge y aprobó la política de retención del piloto. [ADR 0002](decisions/0002-private-source-storage.md) prepara D1 para propiedad/auditoría y R2 para bytes: claves sin RFC o nombre de archivo, acceso sólo desde servidor, verificación SHA-256 al leer y borrado activo R2 antes de D1. El máximo preparatorio es 128 KiB por XML y 1,000 fuentes distintas por entidad.
 
-Este núcleo no tiene ruta HTTP, no fue desplegado y sólo se prueba con bytes sintéticos. Por tanto, el inventario de la demo de esta página no cambia y Wedge todavía no acepta documentos fiscales reales. La exportación preparatoria de dominio omite las claves internas de objetos; una descarga completa de originales aún no está implementada.
+Este núcleo no tiene ruta HTTP, no fue desplegado y sólo se prueba con bytes sintéticos. Por tanto, el inventario de la demo de esta página no cambia y Wedge todavía no acepta documentos fiscales reales. La [exportación completa preparatoria](EXPORTACION.md) entrega manifiesto y originales verificados sin revelar claves internas; aún falta una descarga autenticada y su prueba en Sites.
 
 ## Controles disponibles
 
@@ -40,4 +40,4 @@ Conforme a los artículos 14–16 de la LFPDPPP, el aviso debe identificar al re
 
 Fuente oficial consultada el 2026-09-06: [LFPDPPP, Cámara de Diputados](https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf), texto con última reforma indicada del 14-11-2025.
 
-Todavía se necesitan identidad y domicilio del responsable del servicio, canal de privacidad operativo, revisión del aviso, responsabilidades de proveedores, retención definida y restauración comprobada. No se inventaron domicilio, correo de soporte, certificaciones o promesas de cumplimiento. La demo sigue privada y sin documentos fiscales reales. La página explicativa no sustituye el aviso completo.
+Todavía se necesitan identidad y domicilio del responsable del servicio, canal de privacidad operativo, revisión del aviso, responsabilidades de proveedores, retención por inactividad/cierre antes de beta externa y restauración comprobada. No se inventaron domicilio, correo de soporte, certificaciones o promesas de cumplimiento. La demo sigue privada y sin documentos fiscales reales. La página explicativa no sustituye el aviso completo.
