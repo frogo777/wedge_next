@@ -1,5 +1,9 @@
 # Verificación continua de Wedge
 
+## Corte 2026-09-14
+
+Además de las comprobaciones históricas descritas abajo, CI ejecuta `npm run typecheck`. Una instalación limpia pasó 60 pruebas de módulos/API, 6 del Worker compilado, typecheck, build y lint sin errores. `npm audit --omit=dev` reportó cero vulnerabilidades después de actualizar Next a 16.3.5, la familia React a 19.2.8 y dependencias transitivas. Vite subió a 8.3.0. La auditoría completa conserva 11 avisos altos, 5 moderados y 1 bajo en herramientas de desarrollo; WDG-002A los separa para actualizar el stack de Sites con una regresión dedicada.
+
 Fecha: 2026-09-06. Consolidación técnica de las fases implementadas; no se inicia una nueva fase comercial.
 
 ## Dos niveles de evidencia

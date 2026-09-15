@@ -1,6 +1,57 @@
 # Estado de Wedge
 
-Fecha: 2026-09-06. Proyecto desde cero en `frogo777/wedge_next`.
+Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El historial de incrementos anteriores se conserva debajo.
+
+## Corte de fundamentos — 2026-09-14
+
+Auditoría completa del repositorio, arquitectura, base de datos, documentación, proyectos abiertos, mercado, SAT/RESICO, amenazas, modelo V0 y backlog. El dictamen mantiene a Wedge como demo privada: todavía no recibe archivos de usuarios, no es libro contable y no presenta o paga obligaciones.
+
+```text
+Auditoría y decisiones        ██████████  completa
+Dependencias de producción    ██████████  0 avisos auditados
+Typecheck obligatorio         ██████████  pasa y corre en CI
+Núcleo de datos V0            ██░░░░░░░░  diseñado, sin migración
+Validación con usuarios       ░░░░░░░░░░  pendiente
+```
+
+### Cambio implementado
+
+- Next y `eslint-config-next`: 16.2.6 → 16.3.5.
+- React, React DOM y React Server DOM: 19.2.6 → 19.2.8; este último sí aparece dentro del Worker compilado.
+- Vite: 8.0.13 → 8.3.0.
+- Transitivas vulnerables: `fast-uri` → 3.1.7 y `baseline-browser-mapping` → 2.11.23.
+- Tipos del runtime Cloudflare alineados a 4.20260515.1; binding `DB` declarado.
+- `npm run typecheck` y paso obligatorio de CI añadidos.
+- Sin migración de datos, despliegue o uso de información real.
+
+### Evidencia reproducida desde instalación limpia
+
+| Comprobación | Resultado |
+|---|---:|
+| `npm ci --ignore-scripts --no-audit --no-fund` | Pasa |
+| `npm run typecheck` | Pasa |
+| `npm run test:unit` | 60/60 |
+| `npx vinext build` | Pasa; rutas `/` y `/api/progress` |
+| `node --test tests/integration/worker.test.mjs` | 6/6 |
+| ESLint | 0 errores; 1 aviso preexistente en `page-template.mjs` |
+| `npm audit --omit=dev` | 0 vulnerabilidades reportadas |
+| `npm audit` completo | 11 altas, 5 moderadas, 1 baja en toolchain/dev |
+
+El wrapper de compilación del plugin Sites no pudo resolver el npm global en este Windows; la compilación directa de Vinext sí pasó. `npm run verify` sigue dependiendo de Bash y está registrado como portabilidad pendiente.
+
+### Documentos canónicos
+
+- `docs/audit/FOUNDATION-2026-09-14.md`
+- `docs/research/OPEN-SOURCE-2026-09-14.md`
+- `docs/research/MARKET-2026-09-14.md`
+- `docs/tax/SAT-RESICO-2026.md`
+- `docs/security/THREAT-MODEL-2026-09-14.md`
+- `docs/product/V0-FOUNDATION.md`
+- `docs/BACKLOG.md`
+
+### Próxima tarea
+
+WDG-002A: actualizar en un cambio separado el toolchain Vite/Vinext/Cloudflare y volver a probar compatibilidad. Después, WDG-003 convierte entidad fiscal, procedencia y auditoría en una decisión de arquitectura y migraciones aditivas; antes de crear tablas se revisarán aislamiento, retención, precisión monetaria e invariantes del libro.
 
 ## Fases 3 y 4 — acceso y privacidad de la demo
 
