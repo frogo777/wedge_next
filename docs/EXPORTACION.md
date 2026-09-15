@@ -28,4 +28,4 @@ El manifiesto usa `format: "wedge-full-export"` y `formatVersion: 1`. Incluye la
 
 El consumidor debe escribir en una ubicación temporal y hacer visible el resultado sólo después de agotar el iterador sin error. La futura ruta debe usar autenticación del servidor, `Cache-Control: no-store`, disposición de archivo adjunto y un nombre neutro. Debe explicar que la copia contiene información fiscal sensible y que el usuario será responsable de guardarla o eliminarla de su dispositivo.
 
-El empaquetado descargable y su prueba en Sites siguen pendientes. La carga de documentos reales permanece cerrada hasta validar una copia completa controlada por el fundador, el registro de borrados y el simulacro remoto de recuperación.
+El empaquetado descargable y su prueba en Sites siguen pendientes. El registro de borrados y su reconciliador ya están probados localmente, pero faltan lock/lifecycle y simulacro remoto. La carga de documentos reales permanece cerrada hasta validar también una copia completa controlada por el fundador.

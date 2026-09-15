@@ -24,7 +24,7 @@ Los importes del simulador ISR se procesan en memoria del navegador y no se env�
 
 El fundador decidió que los originales futuros también se conserven en la nube privada de Wedge y aprobó la política de retención del piloto. [ADR 0002](decisions/0002-private-source-storage.md) prepara D1 para propiedad/auditoría y R2 para bytes: claves sin RFC o nombre de archivo, acceso sólo desde servidor, verificación SHA-256 al leer y borrado activo R2 antes de D1. El máximo preparatorio es 128 KiB por XML y 1,000 fuentes distintas por entidad.
 
-Este núcleo no tiene ruta HTTP, no fue desplegado y sólo se prueba con bytes sintéticos. Por tanto, el inventario de la demo de esta página no cambia y Wedge todavía no acepta documentos fiscales reales. La [exportación completa preparatoria](EXPORTACION.md) entrega manifiesto y originales verificados sin revelar claves internas; aún falta una descarga autenticada y su prueba en Sites.
+Este núcleo no tiene ruta HTTP y sólo se prueba con bytes sintéticos. Sus migraciones aditivas están publicadas en el Site privado, con las tablas del dominio vacías; el repositorio inactivo no forma parte del bundle runtime. Por tanto, el inventario de la demo de esta página no cambia y Wedge todavía no acepta documentos fiscales reales. La [exportación completa preparatoria](EXPORTACION.md) entrega manifiesto y originales verificados sin revelar claves internas; aún falta una descarga autenticada y su prueba en Sites.
 
 ## Controles disponibles
 
@@ -32,7 +32,7 @@ La sección Privacidad permite descargar el registro actual de la cuenta autenti
 
 La eliminación está condicionada a la versión y revisión leídas por el usuario. Cada escritura genera una revisión aleatoria: una pestaña que conserva un registro eliminado no puede modificar su reemplazo aunque ambos tengan el mismo número de versión. Una pestaña que nunca tuvo registro puede iniciar un nuevo recorrido; la eliminación no revoca sesiones ni prohíbe crear nuevos registros.
 
-La eliminación no alcanza copias históricas del proveedor, registros de infraestructura, la cuenta de ChatGPT ni descargas locales. No se ha verificado la duración de retención ni la capacidad de purga de esas copias. Tampoco hay eliminación automática por antigüedad en esta versión. El núcleo futuro sí coordina el borrado de D1 y R2 activos, pero no cambia esas limitaciones. No prometer borrado universal o inmediato de todos los sistemas.
+La eliminación no alcanza copias históricas del proveedor, registros de infraestructura, la cuenta de ChatGPT ni descargas locales. No se ha verificado la duración de retención ni la capacidad de purga de esas copias. Tampoco hay eliminación automática por antigüedad en esta versión. El núcleo preparatorio coordina el borrado de D1 y R2 activos y conserva 45 días un tombstone de cero bytes con UUID hasheado para impedir que un restore reactive la entidad. No cambia las demás limitaciones ni permite prometer borrado universal o inmediato de todos los sistemas.
 
 ## Requisitos pendientes antes de atender clientes
 

@@ -45,7 +45,7 @@ Esta opción mantiene utilidad para un solo fundador, evita costo/retención dup
 1. Detener escrituras del módulo afectado y conservar evidencia mínima del incidente.
 2. Obtener una copia/exportación para análisis; no ejecutar Time Travel directamente sobre la base que atiende usuarios.
 3. Comparar D1 y R2 con la auditoría acotada del dominio: faltantes, huérfanos, tamaño, metadatos y, cuando se solicite, SHA-256 real.
-4. Reconciliar solicitudes de eliminación anteriores antes de volver a servir cualquier dato restaurado. Wedge todavía no tiene un registro de borrados independiente del D1 restaurado; éste es un gate de despliegue.
+4. Reconciliar solicitudes de eliminación anteriores antes de volver a servir cualquier dato restaurado. Wedge ya escribe localmente un tombstone mínimo en R2 y el reconciliador elimina entidades revividas; todavía faltan el lock/lifecycle remoto y su prueba.
 5. Restaurar sólo datos sintéticos en un ambiente aislado y medir pérdida/tiempo. La capacidad actual de Sites para clonar o exponer el recurso debe comprobarse sin asumir acceso directo de Wrangler.
 6. Reabrir escrituras sólo con conteos consistentes y una revisión humana del alcance.
 
@@ -55,4 +55,4 @@ La auditoría añadida es de sólo lectura, autoriza en D1 antes de listar R2, p
 
 El fundador aprobó: **durante el piloto privado, conservar mientras la entidad esté activa; borrar D1/R2 activos cuando lo solicite; no usar bucket lock ni una segunda copia de originales; exigir exportación y copia propia antes de uso real.**
 
-Antes de beta externa todavía se debe fijar el plazo por inactividad/cierre, la política para backups del proveedor, el responsable/canal de privacidad y el registro de borrados resistente a una restauración.
+Antes de beta externa todavía se debe fijar el plazo por inactividad/cierre, la política para backups del proveedor y el responsable/canal de privacidad. El registro contra restores tiene política, escritura y reconciliador locales; requiere configuración y simulacro remoto antes de datos reales.

@@ -104,7 +104,7 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-009 — privacidad, recuperación y piloto fundador
 
-**Avance preparatorio WDG-009A/B:** política del piloto aprobada e investigación oficial; auditoría D1/R2 de sólo lectura y exportación incremental de manifiesto más originales verificados. No filtra claves R2 y aborta ante fuentes incompletas, alteración o revocación. Pendientes la descarga autenticada, el registro de borrados independiente y el restore remoto sintético.
+**Avance preparatorio WDG-009A/B/C:** política del piloto aprobada; auditoría D1/R2, exportación incremental, tombstones y reconciliación offline probados localmente. No filtra claves R2 y aborta ante fuentes incompletas, alteración o revocación. [ADR 0003](decisions/0003-restore-safe-deletion-registry.md) fija 45 días para el identificador mínimo. Pendientes lock/lifecycle remoto, descarga autenticada y restore sintético.
 
 - **Meta / valor:** operar un mes de forma segura y medir si Wedge ahorra trabajo.
 - **Incluye:** retención, exportación/borrado integral, backup/restore sintético, incidentes, QA móvil y tres cierres observados.

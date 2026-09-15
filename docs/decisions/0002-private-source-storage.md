@@ -25,7 +25,7 @@ Las claves de objeto tienen la forma `entities/{uuid}/sources/{sha256}`. No incl
 2. El hash SHA-256 se calcula sobre una copia de los bytes. R2 recibe ese checksum y cada lectura vuelve a comprobar tamaño y hash contra D1.
 3. Antes de escribir en R2 se persiste un intento. Si R2 o la transacción final falla, el intento permite reintentar sin perder atribución. Repetir el mismo comando y los mismos bytes devuelve el recibo original; otros bytes producen conflicto.
 4. La creación condicional evita reemplazar silenciosamente un objeto existente. Un objeto previo debe coincidir en tamaño y metadatos de formato.
-5. Una eliminación impide nuevas lecturas o cargas, marca los objetos, los borra en grupos de hasta 1,000 y sólo después elimina D1. Un fallo de R2 conserva el estado `deleting` para reintento. Una carga que pierde la carrera con el borrado elimina el objeto tardío.
+5. Una eliminación impide nuevas lecturas o cargas, escribe el tombstone aprobado en [ADR 0003](0003-restore-safe-deletion-registry.md), lista y borra todos los objetos del prefijo en grupos de hasta 1,000 y sólo después elimina D1. Un fallo conserva `deleting` para reintento. Una carga que pierde la carrera con el borrado elimina el objeto tardío.
 6. La exportación completa fija un manifiesto versionado de D1 y entrega después cada original almacenado, uno a la vez. No revela claves internas de R2. Cada lectura verifica tamaño/SHA-256 y vuelve a autorizar después de obtener los bytes; fuentes `metadata_only`, intentos pendientes, borrado o revocación abortan el proceso.
 7. La migración es aditiva: crea `source_objects`, `source_upload_attempts` y `entity_deletions`. No reconstruye las tablas previas ni convierte automáticamente fuentes históricas `metadata_only` en objetos.
 
@@ -41,9 +41,9 @@ No hay eliminación automática por antigüedad ni política aprobada para respa
 - añadir ruta autenticada, validación completa de archivo, cuotas por tiempo y registro operativo;
 - completar el aviso de privacidad y el canal de derechos de los titulares.
 
-La política del piloto, aprobada por el fundador el 2026-09-14, y su evidencia están en [Retención y recuperación de originales](../research/RETENTION-RECOVERY-2026-09-14.md). No se configura bucket lock: impediría el borrado activo que este módulo promete y Wedge no tiene una base legal aprobada para retener contra una solicitud.
+La política del piloto, aprobada por el fundador el 2026-09-14, y su evidencia están en [Retención y recuperación de originales](../research/RETENTION-RECOVERY-2026-09-14.md). No se configura bucket lock para los originales bajo `entities/`: impediría el borrado activo que este módulo promete y Wedge no tiene una base legal aprobada para retenerlos contra una solicitud. [ADR 0003](0003-restore-safe-deletion-registry.md) limita una excepción de 45 días al tombstone mínimo bajo `deletions/v1/`.
 
-La eliminación implementada cubre la base y el bucket activos del módulo. No cubre descargas del usuario, registros de infraestructura ni respaldos del proveedor.
+La eliminación implementada cubre la base y los originales activos del módulo. Conserva por diseño el tombstone mínimo durante la ventana aprobada; no cubre descargas del usuario, registros de infraestructura ni respaldos del proveedor.
 
 ## Capacidad y costo
 
