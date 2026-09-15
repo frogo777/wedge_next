@@ -15,6 +15,8 @@ La demo usa la identidad autenticada, sin pedir documentos de identificación ad
 
 El reinicio conserva una fila; no equivale a eliminación. No registrar el JSON exportado ni la identidad en Git, incidencias públicas o mensajes. Antes del piloto se requiere canal humano, responsable y procedimiento ARCO revisado. El autoservicio de la demo no sustituye ese procedimiento.
 
+El núcleo de originales genera `manifest.json` y entrega cada XML verificado por separado. El consumidor debe escribir en una ubicación temporal y publicar la copia sólo cuando termine toda la iteración; cualquier error obliga a descartar la salida parcial. Aún no existe una ruta de descarga. Cuando se añada, deberá exigir identidad del servidor, impedir caché, usar un nombre neutro y advertir que el archivo contiene información sensible.
+
 ## Incidente sospechado
 
 El responsable designado deberá delimitar alcance, contener el acceso afectado y preservar evidencia mínima en un lugar restringido. No borrar registros para ocultar el incidente. Evaluar con apoyo competente las comunicaciones necesarias según hechos y obligaciones aplicables. Este documento no autoriza enviar mensajes ni modificar accesos de terceros.
@@ -31,6 +33,7 @@ No hay ejercicio de restauración remota verificado. Antes de recibir datos real
 |---|---|
 | Aislamiento y conflictos de API | Probado con identidades sintéticas y SQLite |
 | Exportación y eliminación del registro activo | Probado técnicamente |
+| Exportación de originales privados | Núcleo incremental probado; descarga autenticada pendiente |
 | Inicio/cierre de sesión y recarga en dispositivos reales | Pendiente |
 | Responsable, canal de atención y aviso definitivo | Pendiente |
 | Retención y prueba de restauración | Política del piloto aprobada y auditoría local probada; restore remoto pendiente |

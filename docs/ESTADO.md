@@ -4,9 +4,13 @@ Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-14
 
+**Incremento WDG-009B:** núcleo de [exportación completa](EXPORTACION.md) para nube privada. Produce un manifiesto versionado y después entrega cada XML almacenado de forma incremental. Cada original se vuelve a autorizar y se verifica por tamaño y SHA-256 después de leer R2; una revocación, borrado concurrente, fuente histórica sin bytes o intento pendiente aborta la exportación.
+
+Verificación local WDG-009B: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 30 de integración (95 en total). Veinticuatro pruebas corresponden al dominio D1/R2 y seis al Worker. No añade dependencias, rutas, recursos remotos ni datos reales.
+
 **Incremento WDG-009A:** auditoría de consistencia D1/R2 de sólo lectura y [recomendación de retención/recuperación](research/RETENTION-RECOVERY-2026-09-14.md). Autoriza antes de listar y antes de responder, pagina de forma acotada y permite verificar el SHA-256 real. Distingue sano, trabajo pendiente, faltante, alterado, huérfano, conflicto de seguimiento y cambio concurrente sin devolver bytes.
 
-El fundador aprobó conservar mientras la entidad esté activa y borrar D1/R2 activos cuando lo solicite, sin bucket lock ni segunda copia oculta. Antes de datos reales todavía faltan exportación completa, registro de borrados resistente a restores y un simulacro remoto aislado. D1 Time Travel y la durabilidad de R2 no se presentan como backup recuperable del original.
+El fundador aprobó conservar mientras la entidad esté activa y borrar D1/R2 activos cuando lo solicite, sin bucket lock ni segunda copia oculta. Antes de datos reales todavía faltan la ruta autenticada de descarga, un registro de borrados resistente a restores y un simulacro remoto aislado. D1 Time Travel y la durabilidad de R2 no se presentan como backup recuperable del original.
 
 Verificación WDG-009A: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 26 de integración (91 en total). Veinte pruebas corresponden al dominio D1/R2 y seis al Worker.
 
@@ -20,7 +24,7 @@ Verificación local WDG-004B: `npm run verify` pasa con typecheck, 65 pruebas un
 Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
 Procedencia por entidad      ✓ PR #2; núcleo D1 preparado
 Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
-Originales de archivos       △ núcleo D1/R2 probado; ruta y exportación pendientes
+Originales de archivos       △ D1/R2 y exportación probados; rutas pendientes
 Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
 Retención del piloto         ✓ política aprobada; revisión jurídica antes de datos reales
 Flujo financiero real        ○ todavía no habilitado
@@ -28,11 +32,11 @@ Flujo financiero real        ○ todavía no habilitado
 
 [PR #1](https://github.com/frogo777/wedge_next/pull/1): auditoría, dependencias y comandos portátiles. [CI remoto](https://github.com/frogo777/wedge_next/actions/runs/34929443677) pasó en Windows y Ubuntu para `e8a028b`: tipos, lint, auditoría completa, 60 pruebas unitarias, build y 6 pruebas de Worker. Cero avisos altos/críticos; cuatro moderados de la cadena Drizzle documentados.
 
-[PR #2](https://github.com/frogo777/wedge_next/pull/2) prepara entidad/procedencia; [PR #3](https://github.com/frogo777/wedge_next/pull/3) endurece XML; [PR #4](https://github.com/frogo777/wedge_next/pull/4) prepara los originales privados; [PR #5](https://github.com/frogo777/wedge_next/pull/5) añade auditoría D1/R2 y la recomendación de retención. Los cuatro permanecen como borradores apilados para revisión antes de integrar o desplegar.
+[PR #2](https://github.com/frogo777/wedge_next/pull/2) prepara entidad/procedencia; [PR #3](https://github.com/frogo777/wedge_next/pull/3) endurece XML; [PR #4](https://github.com/frogo777/wedge_next/pull/4) prepara los originales privados; [PR #5](https://github.com/frogo777/wedge_next/pull/5) añade auditoría D1/R2 y registra la política de retención aprobada; [PR #6](https://github.com/frogo777/wedge_next/pull/6) añade la exportación completa. Los cinco permanecen como borradores apilados para revisión antes de integrar o desplegar.
 
-Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y revocación. Exportar metadatos no filtra claves internas del bucket. El original sólo puede leerse desde la función de servidor y su tamaño/hash se comprueban de nuevo.
+Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y WDG-009B cuatro de exportación completa. El manifiesto no filtra claves internas del bucket. Los originales sólo salen por la función de servidor, de uno en uno y con autorización posterior a la lectura de R2.
 
-**Siguiente:** implementar exportación completa y diseñar un registro de borrados que impida reactivar datos durante un restore. Después se probará recuperación remota sintética antes de una ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** diseñar un registro de borrados que impida reactivar datos durante un restore y ejecutar una recuperación remota sintética. Después se añadirá la descarga autenticada y se validará una copia controlada por el fundador antes de abrir la ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 

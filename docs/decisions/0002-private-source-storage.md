@@ -26,7 +26,7 @@ Las claves de objeto tienen la forma `entities/{uuid}/sources/{sha256}`. No incl
 3. Antes de escribir en R2 se persiste un intento. Si R2 o la transacción final falla, el intento permite reintentar sin perder atribución. Repetir el mismo comando y los mismos bytes devuelve el recibo original; otros bytes producen conflicto.
 4. La creación condicional evita reemplazar silenciosamente un objeto existente. Un objeto previo debe coincidir en tamaño y metadatos de formato.
 5. Una eliminación impide nuevas lecturas o cargas, marca los objetos, los borra en grupos de hasta 1,000 y sólo después elimina D1. Un fallo de R2 conserva el estado `deleting` para reintento. Una carga que pierde la carrera con el borrado elimina el objeto tardío.
-6. La exportación de dominio muestra procedencia, estado e intentos pendientes, pero no revela claves internas de R2. La lectura de bytes sigue siendo una función exclusiva del servidor.
+6. La exportación completa fija un manifiesto versionado de D1 y entrega después cada original almacenado, uno a la vez. No revela claves internas de R2. Cada lectura verifica tamaño/SHA-256 y vuelve a autorizar después de obtener los bytes; fuentes `metadata_only`, intentos pendientes, borrado o revocación abortan el proceso.
 7. La migración es aditiva: crea `source_objects`, `source_upload_attempts` y `entity_deletions`. No reconstruye las tablas previas ni convierte automáticamente fuentes históricas `metadata_only` en objetos.
 
 Los errores del proveedor y de SQL se traducen a códigos de dominio sin exponer detalles. Las pruebas usan dos identidades y XML sintético; no demuestran seguridad operacional ni cumplimiento legal.
@@ -35,7 +35,7 @@ Los errores del proveedor y de SQL se traducen a códigos de dominio sin exponer
 
 No hay eliminación automática por antigüedad ni política aprobada para respaldos. Por eso el repositorio permanece desconectado de rutas HTTP y no debe recibir documentos reales. Antes de habilitarlo se debe:
 
-- aprobar el periodo de retención y el comportamiento al cerrar una cuenta;
+- fijar el periodo de retención por inactividad y cierre antes de una beta externa;
 - verificar qué copias y respaldos administra Sites/Cloudflare y cuánto tardan en purgarse;
 - probar restauración y evitar que ésta reactive datos ya borrados;
 - añadir ruta autenticada, validación completa de archivo, cuotas por tiempo y registro operativo;
