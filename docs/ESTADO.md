@@ -1,12 +1,14 @@
 # Estado de Wedge
 
-Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El historial de incrementos anteriores se conserva debajo.
+Fecha canónica: 2026-09-15. Proyecto desde cero en `frogo777/wedge_next`. El historial de incrementos anteriores se conserva debajo.
 
-## Estado actual — 2026-09-14
+## Estado actual — 2026-09-15
 
 **Incremento WDG-009C ([PR #7](https://github.com/frogo777/wedge_next/pull/7)):** el fundador aprobó [ADR 0003](decisions/0003-restore-safe-deletion-registry.md). El borrado marca D1, registra en R2 un tombstone de cero bytes y UUID hasheado, y después elimina objetos y entidad. Fallos conservan `deleting`; reintentos validan el tombstone existente. Un reconciliador offline paginado detecta entidades revividas y elimina también objetos huérfanos. El lock/lifecycle de 45 días sigue limitado al prefijo `deletions/v1/`, pero todavía no se configuró en nube; el [runbook](runbooks/R2-DELETION-POLICY.md) fija el cambio y su verificación.
 
 Verificación local WDG-009C: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 34 de integración (99 en total). Veintiocho pruebas corresponden al dominio D1/R2 y seis al Worker. Los casos nuevos cubren fallo del registro, reintento, minimización, restore D1 sintético, paginación acotada y tombstone alterado.
+
+Verificación remota WDG-009C: el commit `9cc8395` pasó [CI Windows/Ubuntu](https://github.com/frogo777/wedge_next/actions/runs/34938921175) y se publicó como versión privada 11 de [Wedge en Sites](https://wedge-next.hola192112.chatgpt.site). Sites aplicó las migraciones aditivas: D1 expone las nueve tablas esperadas y las ocho tablas del dominio nuevo permanecen vacías. El repositorio de dominio no tiene ruta HTTP y su código inactivo no entra al bundle. No se cargaron datos fiscales. Falta configurar y probar lock/lifecycle en el R2 remoto.
 
 **Incremento WDG-009B:** núcleo de [exportación completa](EXPORTACION.md) para nube privada. Produce un manifiesto versionado y después entrega cada XML almacenado de forma incremental. Cada original se vuelve a autorizar y se verifica por tamaño y SHA-256 después de leer R2; una revocación, borrado concurrente, fuente histórica sin bytes o intento pendiente aborta la exportación.
 
@@ -31,13 +33,13 @@ Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
 Originales de archivos       △ D1/R2 y exportación probados; rutas pendientes
 Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
 Retención del piloto         ✓ política aprobada; revisión jurídica antes de datos reales
-Registro contra restores     △ núcleo/reconciliador probados; lock/lifecycle remoto pendiente
+Registro contra restores     △ esquema remoto vacío; lock/lifecycle R2 pendiente
 Flujo financiero real        ○ todavía no habilitado
 ```
 
 [PR #1](https://github.com/frogo777/wedge_next/pull/1): auditoría, dependencias y comandos portátiles. [CI remoto](https://github.com/frogo777/wedge_next/actions/runs/34929443677) pasó en Windows y Ubuntu para `e8a028b`: tipos, lint, auditoría completa, 60 pruebas unitarias, build y 6 pruebas de Worker. Cero avisos altos/críticos; cuatro moderados de la cadena Drizzle documentados.
 
-[PR #2](https://github.com/frogo777/wedge_next/pull/2) prepara entidad/procedencia; [PR #3](https://github.com/frogo777/wedge_next/pull/3) endurece XML; [PR #4](https://github.com/frogo777/wedge_next/pull/4) prepara los originales privados; [PR #5](https://github.com/frogo777/wedge_next/pull/5) añade auditoría D1/R2 y registra la política de retención aprobada; [PR #6](https://github.com/frogo777/wedge_next/pull/6) añade la exportación completa; [PR #7](https://github.com/frogo777/wedge_next/pull/7) evita que un restore reactive entidades borradas. Los seis permanecen como borradores apilados para revisión antes de integrar o desplegar.
+[PR #2](https://github.com/frogo777/wedge_next/pull/2) prepara entidad/procedencia; [PR #3](https://github.com/frogo777/wedge_next/pull/3) endurece XML; [PR #4](https://github.com/frogo777/wedge_next/pull/4) prepara los originales privados; [PR #5](https://github.com/frogo777/wedge_next/pull/5) añade auditoría D1/R2 y registra la política de retención aprobada; [PR #6](https://github.com/frogo777/wedge_next/pull/6) añade la exportación completa; [PR #7](https://github.com/frogo777/wedge_next/pull/7) evita que un restore reactive entidades borradas. Los seis permanecen como borradores apilados antes de integrar; el estado completo de #7 ya se publicó en el Site privado sin abrir rutas del dominio.
 
 Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y WDG-009B cuatro de exportación completa. El manifiesto no filtra claves internas del bucket. Los originales sólo salen por la función de servidor, de uno en uno y con autorización posterior a la lectura de R2.
 
