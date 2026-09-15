@@ -37,6 +37,7 @@ const permitted = `EXISTS (SELECT 1 FROM entity_memberships m WHERE m.entity_id 
 const activeEntity = `NOT EXISTS (SELECT 1 FROM entity_deletions d WHERE d.entity_id = e.id)`;
 const sourcePath = (entity: string, hash: string) => `entities/${entity}/sources/${hash}`;
 export const MAX_SOURCES_PER_ENTITY = 1000;
+export const MAX_STORAGE_AUDIT_OBJECTS = 2000;
 
 export async function createEntity(db: D1Database, identity: Identity) {
   const user = actor(identity), id = crypto.randomUUID(), at = new Date().toISOString();
@@ -233,4 +234,134 @@ export async function eraseEntity(db: D1Database, bucket: R2Bucket, identity: Id
       AND ${permitted}`).bind(entity, entity, entity, user),
   ]);
   if (removed.meta.changes === 0) throw new DomainError('not_found');
+}
+
+type AuditFinding = Readonly<{
+  kind: 'hash_mismatch' | 'lifecycle_mismatch' | 'metadata_mismatch' | 'missing_object'
+    | 'object_changed_during_scan' | 'size_mismatch' | 'tracking_conflict' | 'unexpected_object';
+  objectKey: string;
+  sha256: string | null;
+}>;
+
+export async function auditEntityStorage(db: D1Database, bucket: R2Bucket, identity: Identity,
+  entityId: string, options: Readonly<{ verifyBytes?: boolean }> = {}) {
+  const user = actor(identity), entity = key(entityId);
+  if (!options || typeof options !== 'object'
+    || (options.verifyBytes !== undefined && typeof options.verifyBytes !== 'boolean')) throw new DomainError('invalid_input');
+  const verifyBytes = options.verifyBytes === true;
+  const results = await transact(db, [
+    db.prepare(`SELECT e.id, CASE WHEN d.entity_id IS NULL THEN 'active' ELSE 'deleting' END AS state
+      FROM financial_entities e LEFT JOIN entity_deletions d ON d.entity_id = e.id
+      WHERE e.id = ? AND ${permitted}`).bind(entity, entity, user),
+    db.prepare(`SELECT o.sha256, s.byte_length, o.object_key, o.state
+      FROM source_objects o JOIN source_artifacts s ON s.entity_id = o.entity_id AND s.sha256 = o.sha256
+      WHERE o.entity_id = ? AND ${permitted} ORDER BY o.object_key LIMIT ${MAX_STORAGE_AUDIT_OBJECTS + 1}`)
+      .bind(entity, entity, user),
+    db.prepare(`SELECT sha256, byte_length, object_key FROM source_upload_attempts
+      WHERE entity_id = ? AND ${permitted}
+      GROUP BY sha256, byte_length, object_key ORDER BY object_key LIMIT ${MAX_STORAGE_AUDIT_OBJECTS + 1}`)
+      .bind(entity, entity, user),
+  ]);
+  const entityRow = results[0].results[0];
+  if (!entityRow) throw new DomainError('not_found');
+  const sources = results[1].results, pending = results[2].results;
+  if (sources.length > MAX_STORAGE_AUDIT_OBJECTS || pending.length > MAX_STORAGE_AUDIT_OBJECTS) {
+    throw new DomainError('limit_exceeded');
+  }
+
+  type Expected = Readonly<{ sha256: string; byteLength: number }>;
+  const expected = new Map<string, Expected>(), findings: AuditFinding[] = [];
+  for (const row of sources) {
+    if (typeof row.object_key !== 'string' || typeof row.sha256 !== 'string' || typeof row.byte_length !== 'number'
+      || (row.state !== 'stored' && row.state !== 'deleting')) throw new DomainError('storage_error');
+    const phase = row.state;
+    expected.set(row.object_key, { sha256: row.sha256, byteLength: row.byte_length });
+    if ((entityRow.state === 'active' && phase !== 'stored') || (entityRow.state === 'deleting' && phase !== 'deleting')) {
+      findings.push({ kind: 'lifecycle_mismatch', objectKey: row.object_key, sha256: row.sha256 });
+    }
+  }
+  for (const row of pending) {
+    if (typeof row.object_key !== 'string' || typeof row.sha256 !== 'string' || typeof row.byte_length !== 'number') {
+      throw new DomainError('storage_error');
+    }
+    const tracked = expected.get(row.object_key);
+    if (tracked && (tracked.sha256 !== row.sha256 || tracked.byteLength !== row.byte_length)) {
+      findings.push({ kind: 'tracking_conflict', objectKey: row.object_key, sha256: row.sha256 });
+    } else if (!tracked) {
+      expected.set(row.object_key, { sha256: row.sha256, byteLength: row.byte_length });
+    }
+  }
+  if (expected.size > MAX_STORAGE_AUDIT_OBJECTS) throw new DomainError('limit_exceeded');
+
+  const objects: R2Object[] = [];
+  try {
+    let cursor: string | undefined;
+    do {
+      const page = await bucket.list({ prefix: `entities/${entity}/sources/`, cursor, limit: 1000,
+        include: ['httpMetadata', 'customMetadata'] });
+      objects.push(...page.objects);
+      if (objects.length > MAX_STORAGE_AUDIT_OBJECTS) throw new DomainError('limit_exceeded');
+      if (!page.truncated) break;
+      if (!page.cursor || page.cursor === cursor) throw new DomainError('storage_error');
+      cursor = page.cursor;
+    } while (true);
+  } catch (error) {
+    if (error instanceof DomainError) throw error;
+    throw new DomainError('storage_error');
+  }
+
+  const present = new Set<string>();
+  let contentChecked = 0;
+  for (const listed of objects) {
+    const tracked = expected.get(listed.key);
+    if (!tracked) {
+      const suffix = listed.key.slice(`entities/${entity}/sources/`.length);
+      findings.push({ kind: 'unexpected_object', objectKey: listed.key,
+        sha256: /^[0-9a-f]{64}$/.test(suffix) ? suffix : null });
+      continue;
+    }
+    let observed = listed;
+    if (verifyBytes) {
+      try {
+        const object = await bucket.get(listed.key);
+        if (!object) {
+          findings.push({ kind: 'object_changed_during_scan', objectKey: listed.key, sha256: tracked.sha256 });
+          continue;
+        }
+        observed = object;
+        contentChecked += 1;
+        if ((await sha256(new Uint8Array(await object.arrayBuffer()))).hex !== tracked.sha256) {
+          findings.push({ kind: 'hash_mismatch', objectKey: listed.key, sha256: tracked.sha256 });
+        }
+      } catch { throw new DomainError('storage_error'); }
+    }
+    present.add(listed.key);
+    if (observed.size !== tracked.byteLength) {
+      findings.push({ kind: 'size_mismatch', objectKey: listed.key, sha256: tracked.sha256 });
+    }
+    if (observed.httpMetadata?.contentType !== 'application/xml' || observed.customMetadata?.sha256 !== tracked.sha256
+      || observed.customMetadata?.format !== 'wedge-source-v1') {
+      findings.push({ kind: 'metadata_mismatch', objectKey: listed.key, sha256: tracked.sha256 });
+    }
+  }
+  for (const row of sources) {
+    if (row.state === 'stored' && typeof row.object_key === 'string' && !present.has(row.object_key)) {
+      findings.push({ kind: 'missing_object', objectKey: row.object_key, sha256: row.sha256 as string });
+    }
+  }
+  findings.sort((a, b) => a.kind < b.kind ? -1 : a.kind > b.kind ? 1
+    : a.objectKey < b.objectKey ? -1 : a.objectKey > b.objectKey ? 1 : 0);
+  const stillAuthorized = await queryFirst(db, db.prepare(`SELECT e.id FROM financial_entities e
+    WHERE e.id = ? AND ${permitted}`).bind(entity, entity, user));
+  if (!stillAuthorized) throw new DomainError('not_found');
+  const pendingObjects = new Set(pending.map(row => row.object_key)).size;
+  const pendingWork = pendingObjects > 0 || entityRow.state === 'deleting';
+  return {
+    formatVersion: 1,
+    entity: { id: entity, state: entityRow.state as string },
+    mode: verifyBytes ? 'content' : 'metadata',
+    status: findings.length ? 'inconsistent' : pendingWork ? 'pending' : 'consistent',
+    counts: { sourceObjects: sources.length, pendingObjects, bucketObjects: objects.length, contentChecked },
+    findings,
+  };
 }

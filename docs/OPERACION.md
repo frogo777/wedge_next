@@ -21,7 +21,9 @@ El responsable designado deberá delimitar alcance, contener el acceso afectado 
 
 ## Respaldos y recuperación
 
-No hay ejercicio de restauración verificado. Antes de recibir datos reales: comprobar capacidades y retención del proveedor, restaurar datos sintéticos en un entorno separado y medir pérdida máxima y tiempo de recuperación. Toda restauración debe considerar eliminaciones previas para evitar reactivar datos borrados. No prometer RPO/RTO ni un protocolo 3-2-1 implementado.
+La auditoría preparatoria de almacenamiento compara D1/R2 con autorización previa, paginación y verificación SHA-256 opcional. Pruebas sintéticas demuestran que detecta objetos faltantes, alterados y huérfanos, además de distinguir intentos pendientes. Esto diagnostica consistencia; no restaura datos.
+
+No hay ejercicio de restauración remota verificado. Antes de recibir datos reales: comprobar capacidades y retención del proveedor, restaurar datos sintéticos en un entorno separado y medir pérdida máxima y tiempo de recuperación. No ejecutar D1 Time Travel directamente sobre una base que atiende usuarios: sobrescribe el estado y puede reactivar metadatos borrados. Toda restauración debe reconciliar eliminaciones previas y R2 antes de servir. No prometer RPO/RTO ni un protocolo 3-2-1 implementado. Ver [investigación de retención/recuperación](research/RETENTION-RECOVERY-2026-09-14.md).
 
 ## Condiciones para abrir un piloto
 
@@ -31,7 +33,7 @@ No hay ejercicio de restauración verificado. Antes de recibir datos reales: com
 | Exportación y eliminación del registro activo | Probado técnicamente |
 | Inicio/cierre de sesión y recarga en dispositivos reales | Pendiente |
 | Responsable, canal de atención y aviso definitivo | Pendiente |
-| Retención y prueba de restauración | Pendiente |
+| Retención y prueba de restauración | Recomendación preparada; auditoría local probada; decisión y restore remoto pendientes |
 | Motor fiscal revisado por profesional | No implementado |
 | Acuerdos de alcance, precio y cancelación | Pendiente |
 

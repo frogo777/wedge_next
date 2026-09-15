@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Miniflare } from 'miniflare';
-import { createEntity, recordSource, readSource, exportEntity, eraseEntity, MAX_SOURCES_PER_ENTITY } from '../../packages/domain/repository.ts';
+import { createEntity, recordSource, readSource, exportEntity, eraseEntity, auditEntityStorage,
+  MAX_SOURCES_PER_ENTITY } from '../../packages/domain/repository.ts';
 
 // Real D1 semantics in an isolated local runtime. No HTTP route or real tax data.
 const alice = { userId: 'synthetic-alice' }, bob = { userId: 'synthetic-bob' };
@@ -241,6 +242,75 @@ test('Dominio: limita fuentes distintas por entidad pero permite completar una y
   assert.equal((await exportEntity(db, alice, entity.id)).pendingUploads.length, 0);
   await recordSource(db, bucket, alice, entity.id, 'known', bytes('abc'));
   assert.equal((await readSource(db, bucket, alice, entity.id, hashAbc)).sha256, hashAbc);
+});
+
+test('Dominio: auditoría paginada verifica contenido sano sin exponer bytes', async () => {
+  const entity = await createEntity(db, alice);
+  await recordSource(db, bucket, alice, entity.id, 'audit-abc', bytes('abc'));
+  await recordSource(db, bucket, alice, entity.id, 'audit-def', bytes('def'));
+  const metadata = await auditEntityStorage(db, bucket, alice, entity.id);
+  assert.equal(metadata.status, 'consistent'); assert.equal(metadata.mode, 'metadata');
+  assert.equal(metadata.counts.contentChecked, 0);
+  const paged = wrapBucket({ list: options => bucket.list({ ...options, limit: 1 }) });
+  const report = await auditEntityStorage(db, paged, alice, entity.id, { verifyBytes: true });
+  assert.equal(report.status, 'consistent'); assert.equal(report.mode, 'content');
+  assert.deepEqual(report.counts, { sourceObjects: 2, pendingObjects: 0, bucketObjects: 2, contentChecked: 2 });
+  assert.deepEqual(report.findings, []); assert.equal('bytes' in report, false);
+});
+
+test('Dominio: auditoría distingue faltante, alterado, huérfano e intento pendiente', async () => {
+  const entity = await createEntity(db, alice);
+  const missing = await recordSource(db, bucket, alice, entity.id, 'audit-missing', bytes('abc'));
+  const corrupt = await recordSource(db, bucket, alice, entity.id, 'audit-corrupt', bytes('def'));
+  const wrongMetadata = await recordSource(db, bucket, alice, entity.id, 'audit-metadata', bytes('jkl'));
+  await bucket.delete(objectPath(entity.id, missing.sha256));
+  await bucket.put(objectPath(entity.id, corrupt.sha256), bytes('wxyz'), {
+    httpMetadata: { contentType: 'application/xml' },
+    customMetadata: { sha256: corrupt.sha256, format: 'wedge-source-v1' },
+  });
+  await bucket.put(objectPath(entity.id, wrongMetadata.sha256), bytes('jkl'));
+  const orphanHash = 'f'.repeat(64);
+  await bucket.put(objectPath(entity.id, orphanHash), bytes('orphan'));
+  const unavailable = wrapBucket({ put: async () => { throw new Error('synthetic R2 detail'); } });
+  await assert.rejects(recordSource(db, unavailable, alice, entity.id, 'audit-pending', bytes('ghi')), code('storage_error'));
+  await db.prepare(`INSERT INTO source_upload_attempts
+    (entity_id, command_id, sha256, byte_length, object_key, actor_id, started_at)
+    VALUES (?, 'synthetic-conflict', ?, 4, ?, ?, '2026-09-14')`)
+    .bind(entity.id, missing.sha256, objectPath(entity.id, missing.sha256), alice.userId).run();
+
+  const report = await auditEntityStorage(db, bucket, alice, entity.id, { verifyBytes: true });
+  assert.equal(report.status, 'inconsistent'); assert.equal(report.counts.pendingObjects, 2);
+  assert.deepEqual(report.findings.map(f => f.kind), [
+    'hash_mismatch', 'metadata_mismatch', 'missing_object', 'size_mismatch', 'tracking_conflict', 'unexpected_object',
+  ]);
+  assert.deepEqual(report.findings.map(f => f.sha256), [
+    corrupt.sha256, wrongMetadata.sha256, missing.sha256, corrupt.sha256, missing.sha256, orphanHash,
+  ]);
+});
+
+test('Dominio: auditoría autoriza antes de listar y oculta fallos del proveedor', async () => {
+  const entity = await createEntity(db, alice);
+  let listed = false;
+  const unavailable = wrapBucket({ list: async () => { listed = true; throw new Error('synthetic provider detail'); } });
+  await assert.rejects(auditEntityStorage(db, unavailable, bob, entity.id), code('not_found'));
+  assert.equal(listed, false);
+  await assert.rejects(auditEntityStorage(db, unavailable, alice, entity.id), code('storage_error'));
+  assert.equal(listed, true);
+  await assert.rejects(auditEntityStorage(db, bucket, alice, entity.id, { verifyBytes: 'yes' }), code('invalid_input'));
+});
+
+test('Dominio: auditoría vuelve a autorizar antes de devolver el informe', async () => {
+  const entity = await createEntity(db, alice);
+  await recordSource(db, bucket, alice, entity.id, 'audit-revoke', bytes('abc'));
+  let enterList, releaseList;
+  const entered = new Promise(resolve => { enterList = resolve; });
+  const release = new Promise(resolve => { releaseList = resolve; });
+  const delayed = wrapBucket({ list: async options => { enterList(); await release; return bucket.list(options); } });
+  const report = auditEntityStorage(db, delayed, alice, entity.id);
+  await entered;
+  await db.prepare('DELETE FROM entity_memberships WHERE entity_id = ? AND user_id = ?').bind(entity.id, alice.userId).run();
+  releaseList();
+  await assert.rejects(report, code('not_found'));
 });
 
 test('Dominio: acceso por entidad utiliza índices; la migración conserva demo y permite reversión sintética', async () => {

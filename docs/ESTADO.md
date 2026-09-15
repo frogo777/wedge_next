@@ -4,7 +4,13 @@ Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-14
 
-**Incremento WDG-004B:** el fundador eligió conservar los originales también en la nube privada de Wedge. [ADR 0002](decisions/0002-private-source-storage.md) prepara R2 para bytes y D1 para propiedad, intentos, estado y auditoría. Incluye hash verificado al leer, creación condicional, reintentos D1–R2–D1, límite de 128 KiB y 1,000 fuentes distintas por entidad, y borrado R2 antes de la cascada D1.
+**Incremento WDG-009A:** auditoría de consistencia D1/R2 de sólo lectura y [recomendación de retención/recuperación](research/RETENTION-RECOVERY-2026-09-14.md). Autoriza antes de listar y antes de responder, pagina de forma acotada y permite verificar el SHA-256 real. Distingue sano, trabajo pendiente, faltante, alterado, huérfano, conflicto de seguimiento y cambio concurrente sin devolver bytes.
+
+La recomendación para el piloto es conservar mientras la entidad esté activa y borrar D1/R2 activos cuando el fundador lo solicite, sin bucket lock ni segunda copia oculta. Falta aprobación del fundador; antes de beta también faltan exportación completa, registro de borrados resistente a restores y un simulacro remoto aislado. D1 Time Travel y la durabilidad de R2 no se presentan como backup recuperable del original.
+
+Verificación WDG-009A: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 26 de integración (91 en total). Veinte pruebas corresponden al dominio D1/R2 y seis al Worker.
+
+**Base WDG-004B:** el fundador eligió conservar los originales también en la nube privada de Wedge. [ADR 0002](decisions/0002-private-source-storage.md) prepara R2 para bytes y D1 para propiedad, intentos, estado y auditoría. Incluye hash verificado al leer, creación condicional, reintentos D1–R2–D1, límite de 128 KiB y 1,000 fuentes distintas por entidad, y borrado R2 antes de la cascada D1.
 
 El módulo sigue sin ruta HTTP, despliegue, documentos reales o política automática de retención. La migración 0006 es sólo aditiva: una reconstrucción generada durante el desarrollo se descartó antes de guardarla porque las cascadas de D1 podían eliminar fuentes existentes. La prueba de migración conserva expresamente una fuente `metadata_only` previa.
 
@@ -15,6 +21,7 @@ Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
 Procedencia por entidad      ✓ PR #2; núcleo D1 preparado
 Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
 Originales de archivos       △ núcleo D1/R2 probado; ruta y retención pendientes
+Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
 Flujo financiero real        ○ todavía no habilitado
 ```
 
@@ -22,9 +29,9 @@ Flujo financiero real        ○ todavía no habilitado
 
 [PR #2](https://github.com/frogo777/wedge_next/pull/2) prepara entidad/procedencia; [PR #3](https://github.com/frogo777/wedge_next/pull/3) endurece XML; [PR #4](https://github.com/frogo777/wedge_next/pull/4) prepara los originales privados en D1/R2. Los tres permanecen como borradores apilados para revisión antes de integrar o desplegar.
 
-Dieciséis pruebas D1/R2 en Miniflare cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. Exportar metadatos no filtra claves internas del bucket. El original sólo puede leerse desde la función de servidor y su tamaño/hash se comprueban de nuevo.
+Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y revocación. Exportar metadatos no filtra claves internas del bucket. El original sólo puede leerse desde la función de servidor y su tamaño/hash se comprueban de nuevo.
 
-**Siguiente:** acordar retención y alcance de respaldos, probar restauración sintética y después diseñar la ruta autenticada por lotes. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** aprobar la recomendación de retención, implementar exportación completa y diseñar un registro de borrados que impida reactivar datos durante un restore. Después se probará recuperación remota sintética antes de una ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 
