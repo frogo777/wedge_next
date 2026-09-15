@@ -1,6 +1,6 @@
 # ADR 0003 — Registro de borrados resistente a restauraciones
 
-Fecha: 2026-09-14. Estado: **aprobada por el fundador e implementada localmente con datos sintéticos**. No configura locks, lifecycle, recursos remotos ni credenciales.
+Fecha: 2026-09-14. Estado: **aprobada por el fundador e implementada localmente con datos sintéticos**. Las migraciones aditivas están publicadas; la política administrativa R2 permanece bloqueada por la frontera entre Sites y la cuenta Cloudflare conectada.
 
 ## Problema
 
@@ -47,10 +47,10 @@ deletions/v1/{sha256("wedge:deletion:v1:" + entity_uuid)}
 
 Cada eliminación añade un `PutObject` y al menos un `ListObjects`, ambos clase A; cada página adicional suma otro listado. Validar un tombstone existente usa una lectura clase B y los borrados no tienen cargo de operación. R2 Standard incluye actualmente 10 GB-mes, un millón de operaciones clase A y diez millones clase B al mes. El piloto debería caber holgadamente, pero el nivel gratuito se comparte con el resto de la cuenta y no constituye una promesa de costo cero.
 
-Configurar el lock requiere acceso administrativo al bucket. La excepción ya fue aprobada; la aplicación Sites está activa, pero su manifiesto sólo expone el binding lógico `BUCKET` y no el nombre administrativo del bucket ni sus reglas. El CLI local de Cloudflare tampoco tiene una sesión autenticada. El [runbook de nube](../runbooks/R2-DELETION-POLICY.md) define el cambio exacto sin confundir el nombre local de Miniflare con el recurso remoto.
+Configurar el lock requiere acceso administrativo al bucket. La excepción ya fue aprobada. El intento remoto del 2026-09-15 confirmó que la aplicación Sites está activa y sólo expone el binding lógico `BUCKET`; la cuenta Cloudflare autorizada contiene cero Workers y su API informa que R2 no está habilitado. Esa cuenta no administra el recurso de Sites. No se creó otro bucket porque no respaldaría el binding de producción. El [runbook de nube](../runbooks/R2-DELETION-POLICY.md) conserva el cambio exacto y el desbloqueo requerido sin registrar identificadores administrativos.
 
 ## Decisión aprobada
 
 El fundador aprobó: **conservar durante 45 días, en el R2 privado existente, un tombstone de cero bytes cuyo nombre sea la huella SHA-256 del UUID aleatorio de la entidad; aplicar lock y lifecycle sólo al prefijo `deletions/v1/`.**
 
-La implementación marca primero la entidad como `deleting`, escribe el tombstone con creación condicional y checksum, y sólo entonces elimina todos los objetos del prefijo de la entidad y D1. Un fallo conserva la entidad bloqueada y reintentable. La consulta de recuperación valida que el objeto tenga cero bytes, formato y cabeceras esperadas; el reconciliador offline elimina entidades restauradas y objetos huérfanos antes de reabrir escrituras. El coordinador recorre D1 por páginas acotadas y permite reintentos idempotentes. Estas funciones permanecen aisladas de HTTP. Falta comprobar lock/lifecycle y el proceso completo en un recurso remoto sintético.
+La implementación marca primero la entidad como `deleting`, escribe el tombstone con creación condicional y checksum, y sólo entonces elimina todos los objetos del prefijo de la entidad y D1. Un fallo conserva la entidad bloqueada y reintentable. La consulta de recuperación valida que el objeto tenga cero bytes, formato y cabeceras esperadas; el reconciliador offline elimina entidades restauradas y objetos huérfanos antes de reabrir escrituras. El coordinador recorre D1 por páginas acotadas y permite reintentos idempotentes. Estas funciones permanecen aisladas de HTTP. Falta comprobar lock/lifecycle y el proceso completo en un recurso remoto sintético cuando Sites exponga acceso administrativo al bucket o se apruebe una migración a infraestructura controlada por el fundador.

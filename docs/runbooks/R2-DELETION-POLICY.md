@@ -2,6 +2,21 @@
 
 Fecha: 2026-09-14. Alcance aprobado: sólo el prefijo `deletions/v1/` del bucket privado usado por el binding Sites `BUCKET`. No aplicar estas reglas a `entities/`.
 
+## Resultado del intento remoto — 2026-09-15
+
+La conexión Cloudflare autorizada no administra la infraestructura del Site publicado. La comprobación devolvió cero Workers en esa cuenta y la API de R2 indicó que R2 no está habilitado. En paralelo, Sites confirmó que Wedge sigue activo como versión privada 11 y sólo expone a la aplicación el binding lógico `BUCKET`. Por tanto, el bucket del Site está fuera del alcance administrativo de la cuenta Cloudflare conectada.
+
+No se creó un segundo bucket, no se modificó ninguna regla y no se escribió ningún objeto de prueba. Un bucket nuevo en la cuenta conectada no protegería el binding que usa producción.
+
+```text
+Wedge publicado ──► Sites ──► BUCKET administrado por el proveedor
+                              ╳ sin API administrativa disponible
+
+Cloudflare conectado ──► 0 Workers; R2 no habilitado
+```
+
+Para continuar, Sites debe exponer la administración del R2 que respalda `BUCKET`, o Wedge debe migrar explícitamente a un Worker y un R2 controlados por el fundador. Esa migración es un cambio de infraestructura separado; este runbook no debe ejecutarse contra otro bucket.
+
 ## Cambio exacto
 
 | Regla | Prefijo | Acción | Edad |
@@ -13,7 +28,7 @@ Cloudflare documenta que los locks aplican a objetos nuevos y existentes, que la
 
 ## Preflight obligatorio
 
-1. Obtener del propietario de Sites el nombre **real** del bucket y la jurisdicción. `site-creator-r2` en `vite.config.ts` es únicamente el nombre local de Miniflare.
+1. Obtener del propietario de Sites acceso administrativo al bucket **real** y su jurisdicción. `site-creator-r2` en `vite.config.ts` es únicamente el nombre local de Miniflare.
 2. Usar una sesión o token limitado a editar la configuración R2 de ese bucket. No guardar el token, ID de cuenta o salida de autenticación en Git.
 3. Enumerar y conservar las reglas existentes:
 

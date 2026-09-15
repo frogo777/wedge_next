@@ -4,11 +4,11 @@ Fecha canónica: 2026-09-15. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-15
 
-**Incremento WDG-009C ([PR #7](https://github.com/frogo777/wedge_next/pull/7)):** el fundador aprobó [ADR 0003](decisions/0003-restore-safe-deletion-registry.md). El borrado marca D1, registra en R2 un tombstone de cero bytes y UUID hasheado, y después elimina objetos y entidad. Fallos conservan `deleting`; reintentos validan el tombstone existente. Un reconciliador offline paginado detecta entidades revividas y elimina también objetos huérfanos. El lock/lifecycle de 45 días sigue limitado al prefijo `deletions/v1/`, pero todavía no se configuró en nube; el [runbook](runbooks/R2-DELETION-POLICY.md) fija el cambio y su verificación.
+**Incremento WDG-009C ([PR #7](https://github.com/frogo777/wedge_next/pull/7)):** el fundador aprobó [ADR 0003](decisions/0003-restore-safe-deletion-registry.md). El borrado marca D1, registra en R2 un tombstone de cero bytes y UUID hasheado, y después elimina objetos y entidad. Fallos conservan `deleting`; reintentos validan el tombstone existente. Un reconciliador offline paginado detecta entidades revividas y elimina también objetos huérfanos. El lock/lifecycle de 45 días sigue limitado al prefijo `deletions/v1/`, pero no pudo configurarse en nube porque el R2 de Sites no pertenece a la cuenta Cloudflare conectada; el [runbook](runbooks/R2-DELETION-POLICY.md) fija el cambio, la verificación y el desbloqueo requerido.
 
 Verificación local WDG-009C: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 34 de integración (99 en total). Veintiocho pruebas corresponden al dominio D1/R2 y seis al Worker. Los casos nuevos cubren fallo del registro, reintento, minimización, restore D1 sintético, paginación acotada y tombstone alterado.
 
-Verificación remota WDG-009C: el commit `9cc8395` pasó [CI Windows/Ubuntu](https://github.com/frogo777/wedge_next/actions/runs/34938921175) y se publicó como versión privada 11 de [Wedge en Sites](https://wedge-next.hola192112.chatgpt.site). Sites aplicó las migraciones aditivas: D1 expone las nueve tablas esperadas y las ocho tablas del dominio nuevo permanecen vacías. El repositorio de dominio no tiene ruta HTTP y su código inactivo no entra al bundle. No se cargaron datos fiscales. Falta configurar y probar lock/lifecycle en el R2 remoto.
+Verificación remota WDG-009C: el commit `9cc8395` pasó [CI Windows/Ubuntu](https://github.com/frogo777/wedge_next/actions/runs/34938921175) y se publicó como versión privada 11 de [Wedge en Sites](https://wedge-next.hola192112.chatgpt.site). Sites aplicó las migraciones aditivas: D1 expone las nueve tablas esperadas y las ocho tablas del dominio nuevo permanecen vacías. El repositorio de dominio no tiene ruta HTTP y su código inactivo no entra al bundle. No se cargaron datos fiscales. El 2026-09-15, Sites confirmó el Site activo mientras la conexión Cloudflare mostró cero Workers y R2 no habilitado en su propia cuenta. No se modificaron reglas ni se crearon objetos o recursos. El lock/lifecycle remoto requiere que Sites exponga el bucket administrativo o una migración aprobada a infraestructura propia.
 
 **Incremento WDG-009B:** núcleo de [exportación completa](EXPORTACION.md) para nube privada. Produce un manifiesto versionado y después entrega cada XML almacenado de forma incremental. Cada original se vuelve a autorizar y se verifica por tamaño y SHA-256 después de leer R2; una revocación, borrado concurrente, fuente histórica sin bytes o intento pendiente aborta la exportación.
 
@@ -33,7 +33,7 @@ Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
 Originales de archivos       △ D1/R2 y exportación probados; rutas pendientes
 Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
 Retención del piloto         ✓ política aprobada; revisión jurídica antes de datos reales
-Registro contra restores     △ esquema remoto vacío; lock/lifecycle R2 pendiente
+Registro contra restores     △ esquema remoto vacío; política R2 bloqueada por Sites
 Flujo financiero real        ○ todavía no habilitado
 ```
 
@@ -43,7 +43,7 @@ Flujo financiero real        ○ todavía no habilitado
 
 Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y WDG-009B cuatro de exportación completa. El manifiesto no filtra claves internas del bucket. Los originales sólo salen por la función de servidor, de uno en uno y con autorización posterior a la lectura de R2.
 
-**Siguiente:** configurar/probar lock, lifecycle y recuperación remota sintética. Luego se añadirá la descarga autenticada y se validará una copia controlada por el fundador antes de abrir la ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** obtener control administrativo del R2 de Sites o aprobar una migración a infraestructura Cloudflare propia; entonces configurar/probar lock, lifecycle y recuperación remota sintética. En paralelo puede añadirse la descarga autenticada y validarse una copia controlada por el fundador antes de abrir la ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 
