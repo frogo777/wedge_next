@@ -1,6 +1,6 @@
 # ADR 0001 — Entidad y procedencia antes de cargar archivos
 
-Fecha: 2026-09-14. Estado: implementación preparatoria con datos sintéticos; sin activar rutas ni desplegar migraciones.
+Fecha: 2026-09-14. Estado: implementación preparatoria con datos sintéticos; extendida por [ADR 0002](0002-private-source-storage.md), sin activar rutas ni desplegar migraciones.
 
 ## Problema y decisión
 
@@ -23,16 +23,16 @@ Se utiliza `import_receipts` por archivo/comando, en lugar de anticipar un lote 
 2. Claves compuestas `(entity_id, hash)` impiden que una recepción señale la fuente de otra entidad. El mismo archivo en entidades distintas no comparte filas.
 3. SHA-256 se calcula sobre una copia de los bytes originales, antes de cualquier normalización. El llamador no suministra el hash. Máximo 128 KiB por fuente en esta etapa.
 4. Una clave de comando se limita a una entidad. Repetirla con el mismo hash devuelve la recepción original; reutilizarla con otros bytes produce conflicto. Una segunda recepción con nueva clave conserva el intento y reutiliza la fuente.
-5. Fuente, recepción y evento se escriben en un `D1.batch`. Un fallo revierte las tres. La membresía se comprueba dentro de las sentencias; no se usa una autorización leída y almacenada en caché.
+5. En la migración 0005, fuente, recepción y evento se escriben en un `D1.batch`. [ADR 0002](0002-private-source-storage.md) reemplaza esa escritura por un protocolo reintentable D1–R2–D1. La membresía se comprueba dentro de las sentencias; no se usa una autorización leída y almacenada en caché.
 6. Exportación lee entidad, fuentes, recepciones y eventos en un único batch. Conserva actor, tiempo, hash y versión del formato. Ausencia y falta de permiso producen el mismo error de dominio.
 7. No hay operación para editar fuentes, recepciones o eventos. La bitácora es append-only en la interfaz del repositorio, no resistente a un administrador de D1. No se promete evidencia criptográfica de integridad de toda la base.
 8. El borrado de una entidad elimina sus filas activas por cascada, incluida la bitácora. Se autoriza en la propia sentencia y no afecta otras entidades. Esto no elimina backups o descargas.
 
-## Alcance deliberado de esta migración
+## Alcance original de esta migración
 
-Las fuentes tienen estado explícito `metadata_only`: se conserva hash/tamaño, **no el original**. Una recepción no significa CFDI válido, conciliación, asiento, declaración ni pago. No se incluyen saldos, reglas fiscales, estimaciones o hipótesis de IA.
+La migración 0005 creó fuentes con estado explícito `metadata_only`: conserva hash/tamaño y no contiene el original. La migración aditiva de [ADR 0002](0002-private-source-storage.md) puede asociar después un objeto privado sin reconstruir esta tabla. Una recepción no significa CFDI válido, conciliación, asiento, declaración ni pago. No se incluyen saldos, reglas fiscales, estimaciones o hipótesis de IA.
 
-El módulo queda sin rutas de aplicación hasta implementar almacenamiento del original, cuotas, retención, exportación/borrado conjuntos y revisión del acceso. La privacidad actual de la demo sigue describiendo sólo `demo_progress`. Las pruebas usan exclusivamente identidades y bytes sintéticos.
+El módulo queda sin rutas de aplicación hasta cerrar retención, restauración, controles de carga y revisión del acceso. La privacidad actual de la demo sigue describiendo sólo `demo_progress`. Las pruebas usan exclusivamente identidades y bytes sintéticos.
 
 ## Consultas e índices
 
@@ -52,6 +52,6 @@ Generar SQL aditivo con Drizzle y probarlo sobre una base temporal con todas las
 
 [D1 batch](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch) documenta reversión de la secuencia al fallar una sentencia. [Claves foráneas D1](https://developers.cloudflare.com/d1/sql-api/foreign-keys/) documenta su aplicación y las acciones de cascada. Consultadas el 2026-09-14; se comprueba el comportamiento también con Miniflare. La protección por membresía es una decisión de Wedge y no una garantía automática de D1.
 
-## Frontera pendiente
+## Frontera transferida
 
-Antes de habilitar originales: acordar retención y alcance de borrado del piloto, verificar backups del proveedor y configurar almacenamiento privado. No migrar a documentos reales sólo porque las pruebas sintéticas pasen. La arquitectura de identidad y el almacenamiento de RFC requieren revisión específica antes del piloto.
+La decisión de almacenar originales en nube privada y sus controles técnicos se registra en [ADR 0002](0002-private-source-storage.md). Siguen pendientes la retención, los respaldos del proveedor, la ruta autenticada y la revisión específica de identidad/RFC antes del piloto. No migrar a documentos reales sólo porque las pruebas sintéticas pasen.

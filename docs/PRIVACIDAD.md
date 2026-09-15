@@ -20,13 +20,19 @@ No existe carga de RFC, CFDI, e.firma, documentos o datos bancarios aportados po
 
 Los importes del simulador ISR se procesan en memoria del navegador y no se envían a la API ni se guardan en D1. El TXT que descargue el usuario queda en su dispositivo; no forma parte de la exportación o eliminación del registro de cuenta.
 
+## Núcleo privado preparado, todavía inactivo
+
+El fundador decidió que los originales futuros también se conserven en la nube privada de Wedge. [ADR 0002](decisions/0002-private-source-storage.md) prepara D1 para propiedad/auditoría y R2 para bytes: claves sin RFC o nombre de archivo, acceso sólo desde servidor, verificación SHA-256 al leer y borrado activo R2 antes de D1. El máximo preparatorio es 128 KiB por XML y 1,000 fuentes distintas por entidad.
+
+Este núcleo no tiene ruta HTTP, no fue desplegado y sólo se prueba con bytes sintéticos. Por tanto, el inventario de la demo de esta página no cambia y Wedge todavía no acepta documentos fiscales reales. La exportación preparatoria de dominio omite las claves internas de objetos; una descarga completa de originales aún no está implementada.
+
 ## Controles disponibles
 
 La sección Privacidad permite descargar el registro actual de la cuenta autenticada como JSON y eliminarlo, con confirmación, de la base activa. La exportación no pretende incluir datos internos de ChatGPT o Sites. Consultar la API con GET no crea una fila; procesar un XML de ejemplo sí puede crearla. Volver a realizar una acción del recorrido puede crear una fila nueva.
 
 La eliminación está condicionada a la versión y revisión leídas por el usuario. Cada escritura genera una revisión aleatoria: una pestaña que conserva un registro eliminado no puede modificar su reemplazo aunque ambos tengan el mismo número de versión. Una pestaña que nunca tuvo registro puede iniciar un nuevo recorrido; la eliminación no revoca sesiones ni prohíbe crear nuevos registros.
 
-La eliminación no alcanza copias históricas del proveedor, registros de infraestructura, la cuenta de ChatGPT ni descargas locales. No se ha verificado la duración de retención ni la capacidad de purga de esas copias. Tampoco hay eliminación automática por antigüedad en esta versión. No prometer borrado universal o inmediato de todos los sistemas.
+La eliminación no alcanza copias históricas del proveedor, registros de infraestructura, la cuenta de ChatGPT ni descargas locales. No se ha verificado la duración de retención ni la capacidad de purga de esas copias. Tampoco hay eliminación automática por antigüedad en esta versión. El núcleo futuro sí coordina el borrado de D1 y R2 activos, pero no cambia esas limitaciones. No prometer borrado universal o inmediato de todos los sistemas.
 
 ## Requisitos pendientes antes de atender clientes
 

@@ -21,7 +21,7 @@ Demo privada en Sites, Worker Vinext, D1, navegador y XML sintéticos. También 
 | T7 | XSS por metadatos de CFDI o nombres | Alta | Media | Secuestro de sesión/acciones | Presentación escapa valores; CSP | Prohibir `innerHTML` con datos, sanitización central y pruebas con payloads |
 | T8 | Corrupción parcial de fila JSON o carrera | Alta | Media | Historia y cálculos incorrectos | Versión/revisión optimista | Tablas normalizadas, transacciones, restricciones y eventos idempotentes |
 | T9 | Regla fiscal obsoleta o mal aplicada | Alta | Alta | Impuesto estimado incorrecto | Ruleset visible y cálculo puro | Vigencia/versiones, fuentes, casos, revisión profesional y comparación SAT |
-| T10 | Borrado/backup/restore incompleto | Alta | Media | Pérdida o retención indebida | Elimina fila activa; exporta JSON | Política, inventario del proveedor, prueba de restore y registro de borrado |
+| T10 | Borrado/backup/restore incompleto | Alta | Media | Pérdida o retención indebida | Demo elimina fila activa; núcleo futuro borra R2 antes de D1 | Política, inventario del proveedor, prueba de restore y registro de borrado |
 | T11 | API abusada sin cuotas | Media | Media | Indisponibilidad/costo | Cuerpo pequeño y misma procedencia | Límites por usuario/IP, métricas sin PII y respuestas uniformes |
 | T12 | Logs/errores filtran datos fiscales | Alta | Media futura | Exposición persistente | Mensajes genéricos; no registra cabeceras | Allowlist de campos, redacción, retención corta y pruebas de fallos |
 | T13 | Exportación sensible queda en equipo compartido | Media | Media | Exposición local | Aviso parcial | Nombre neutro, confirmación, caducidad si es servidor y guía clara |
