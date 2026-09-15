@@ -4,6 +4,8 @@ Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-14
 
+**Propuesta WDG-009C:** [ADR 0003](decisions/0003-restore-safe-deletion-registry.md) compara el registro necesario para que D1 Time Travel no reactive entidades borradas. Recomienda un tombstone de cero bytes y UUID hasheado en el R2 existente, con lock/lifecycle limitado a 45 días y sólo al prefijo `deletions/v1/`. Es una excepción mínima de retención pendiente de aprobación; no se configuró en nube.
+
 **Incremento WDG-009B:** núcleo de [exportación completa](EXPORTACION.md) para nube privada. Produce un manifiesto versionado y después entrega cada XML almacenado de forma incremental. Cada original se vuelve a autorizar y se verifica por tamaño y SHA-256 después de leer R2; una revocación, borrado concurrente, fuente histórica sin bytes o intento pendiente aborta la exportación.
 
 Verificación local WDG-009B: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 30 de integración (95 en total). Veinticuatro pruebas corresponden al dominio D1/R2 y seis al Worker. No añade dependencias, rutas, recursos remotos ni datos reales.
@@ -36,7 +38,7 @@ Flujo financiero real        ○ todavía no habilitado
 
 Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y WDG-009B cuatro de exportación completa. El manifiesto no filtra claves internas del bucket. Los originales sólo salen por la función de servidor, de uno en uno y con autorización posterior a la lectura de R2.
 
-**Siguiente:** diseñar un registro de borrados que impida reactivar datos durante un restore y ejecutar una recuperación remota sintética. Después se añadirá la descarga autenticada y se validará una copia controlada por el fundador antes de abrir la ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** decidir ADR 0003; con aprobación, implementar tombstones locales y después configurar/probar lock, lifecycle y recuperación remota sintética. Luego se añadirá la descarga autenticada y se validará una copia controlada por el fundador antes de abrir la ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 
