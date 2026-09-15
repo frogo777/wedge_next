@@ -4,6 +4,10 @@ Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-14
 
+**Incremento WDG-004A:** el lector rechaza caracteres XML prohibidos, incluidos los generados por referencias numéricas, conserva los separadores Unicode de XML 1.0 y valida antes de generar huellas. Cinco pruebas adicionales cubren el fallo reproducido y casos válidos; detalles y fuentes en [DOCUMENTOS](DOCUMENTOS.md). La decisión solicitada sobre originales locales o en nube sigue pendiente y no bloquea estas correcciones independientes.
+
+Verificación local WDG-004A: `npm run verify` pasa con tipos, 65 pruebas unitarias, build y 16 de integración. Lint: cero errores y el aviso histórico de la plantilla. El resultado remoto se registra en el PR de este incremento.
+
 ```text
 Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
 Procedencia por entidad      ✓ núcleo y migración preparados; pruebas sintéticas

@@ -52,6 +52,8 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-004 — importación manual segura de CFDI
 
+**Avance preparatorio WDG-004A:** corregida la aceptación de caracteres XML prohibidos y la normalización de saltos XML 1.1; cinco pruebas adversariales nuevas. La carga de originales y su retención siguen pendientes de la decisión de almacenamiento solicitada al fundador.
+
 - **Meta / valor:** reemplazar el catálogo cerrado por un flujo útil sin conectar SAT.
 - **Incluye:** lote, límites, cuarentena, hash, parsing CFDI 4.0, resultados parciales y archivos sintéticos/adversariales.
 - **Fuera:** e.firma, descarga masiva y CFDI 3.x.

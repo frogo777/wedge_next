@@ -2,6 +2,14 @@
 
 Fecha: 2026-09-06. Solo ejemplos sintéticos incluidos en el servidor. No hay subida de archivos propios ni conexión al SAT.
 
+## Actualización de controles XML — 2026-09-14
+
+La revisión adversarial reprodujo que el lector aceptaba NUL, controles prohibidos, sustitutos Unicode aislados y referencias numéricas que expandían a esos caracteres. Ahora verifica caracteres tanto antes del parsing como en los valores decodificados de atributos/texto. La lectura se limita expresamente a XML 1.0 y configura sus saltos de línea; el comportamiento por defecto de xmldom normalizaba también separadores de XML 1.1, alterando texto que debía conservarse.
+
+`analyzeDocument` valida antes de calcular la huella. Entradas vacías, demasiado grandes o con `invalid_xml` devuelven `fingerprint: null`; no se reemplazan sustitutos Unicode para generar una huella engañosa. Los ejemplos sintéticos existentes conservan sus resultados. Cinco nuevas pruebas incluyen 66 combinaciones de caracteres prohibidos en atributos/texto, referencias, Unicode válido, CDATA/comentarios y límites. Se mantiene el rechazo conservador de advertencias del parser: un U+FFFD literal se rechaza aunque XML 1.0 lo permita; no se afirma conformidad XML completa.
+
+Fuentes técnicas consultadas: [XML 1.0 §2.2, caracteres](https://www.w3.org/TR/xml/#charsets), [§2.11, saltos de línea](https://www.w3.org/TR/xml/#sec-line-ends) y la opción `normalizeLineEndings` en el código de `@xmldom/xmldom` 0.9.12 instalado. Estas son restricciones de lectura, no reglas fiscales ni validación XSD/SAT.
+
 ## Resultado usable
 
 En Movimientos → Revisar documentos de ejemplo se puede ejecutar una lectura de seis archivos sintéticos: servicio de agosto, copia idéntica, timbre ausente, servicio de julio, método PPD y contenido diferente bajo el mismo UUID. Los XML se leen realmente con un parser; no se usan resultados preescritos.
