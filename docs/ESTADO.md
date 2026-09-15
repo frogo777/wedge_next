@@ -2,7 +2,28 @@
 
 Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El historial de incrementos anteriores se conserva debajo.
 
-## Corte de fundamentos — 2026-09-14
+## Estado actual — 2026-09-14
+
+```text
+Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
+Procedencia por entidad      ✓ núcleo y migración preparados; pruebas sintéticas
+Originales de archivos       ○ almacenamiento y retención pendientes
+Flujo financiero real        ○ todavía no habilitado
+```
+
+[PR #1](https://github.com/frogo777/wedge_next/pull/1): auditoría, dependencias y comandos portátiles. [CI remoto](https://github.com/frogo777/wedge_next/actions/runs/34929443677) pasó en Windows y Ubuntu para `e8a028b`: tipos, lint, auditoría completa, 60 pruebas unitarias, build y 6 pruebas de Worker. Cero avisos altos/críticos; cuatro moderados de la cadena Drizzle documentados.
+
+WDG-003 incorpora cinco tablas separadas de la demo, una migración aditiva generada por Drizzle y repositorio de entidad/membresía/recepción/fuente/auditoría. SHA-256 se calcula desde bytes, el comando es idempotente por entidad y exportación/borrado verifican membresía dentro del SQL. No hay rutas conectadas a este módulo. Ver [ADR 0001](decisions/0001-entity-provenance.md).
+
+Diez pruebas nuevas en D1/Miniflare verifican aislamiento, referencias cruzadas, concurrencia, rollback completo ante fallo de auditoría, contexto revocado, exportación, borrado, límites, uso de índice y migración/reversión sobre datos sintéticos. El original no se guarda: cada fuente se identifica expresamente como `metadata_only`. No hay migración remota, documentos reales ni cambios de cálculo fiscal.
+
+Verificación local del incremento: `npm run verify` pasa (tipos, 60 unitarias, build, 16 de integración); `npm run lint` pasa con el mismo aviso histórico. CI del incremento de dominio se registra en su PR separado.
+
+**Siguiente:** completar almacenamiento privado del original, retención y exportación/borrado conjuntos antes de conectar una ruta de importación. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+
+## Historial — auditoría de fundamentos del 2026-09-14
+
+Los controles y métricas siguientes describen cortes anteriores; el estado vigente está arriba.
 
 ### Actualización WDG-002A — revisión posterior
 

@@ -36,6 +36,13 @@
       "when": 1788743966282,
       "tag": "0004_silly_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789447168289,
+      "tag": "0005_young_pandemic",
+      "breakpoints": true
     }
   ]
 }

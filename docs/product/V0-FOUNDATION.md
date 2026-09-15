@@ -22,7 +22,7 @@ flowchart LR
 
 ## Modelo de dominio propuesto
 
-No crear estas tablas hasta validar invariantes y consultas. Es la frontera mínima, no un ERP.
+No crear estas tablas hasta validar invariantes y consultas. Es la frontera mínima, no un ERP. El primer subconjunto preparatorio está definido y probado en [ADR 0001](../decisions/0001-entity-provenance.md): entidad, membresía owner, fuente, recepción por archivo y bitácora. No está conectado a rutas ni guarda originales; el resto de esta tabla sigue siendo propuesta.
 
 | Entidad | Responsabilidad | Invariantes |
 |---|---|---|
