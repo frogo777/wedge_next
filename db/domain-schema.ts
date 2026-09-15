@@ -23,6 +23,39 @@ export const sourceArtifacts = sqliteTable('source_artifacts', {
   check('source_size', sql`${t.byteLength} BETWEEN 1 AND 131072`),
   check('source_storage', sql`${t.storageState} = 'metadata_only'`),
 ]);
+export const sourceObjects = sqliteTable('source_objects', {
+  entityId: text('entity_id').notNull(),
+  sha256: text('sha256').notNull(),
+  objectKey: text('object_key').notNull(),
+  mediaType: text('media_type').notNull().default('application/xml'),
+  state: text('state').notNull().default('stored'),
+  createdAt: text('created_at').notNull(),
+}, t => [
+  primaryKey({ columns: [t.entityId, t.sha256] }),
+  foreignKey({ columns: [t.entityId, t.sha256], foreignColumns: [sourceArtifacts.entityId, sourceArtifacts.sha256] }).onDelete('cascade'),
+  check('object_key', sql`${t.objectKey} = 'entities/' || ${t.entityId} || '/sources/' || ${t.sha256}`),
+  check('object_media', sql`${t.mediaType} = 'application/xml'`),
+  check('object_state', sql`${t.state} IN ('stored', 'deleting')`),
+]);
+export const sourceUploadAttempts = sqliteTable('source_upload_attempts', {
+  entityId: text('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
+  commandId: text('command_id').notNull(),
+  sha256: text('sha256').notNull(),
+  byteLength: integer('byte_length').notNull(),
+  objectKey: text('object_key').notNull(),
+  actorId: text('actor_id').notNull(),
+  startedAt: text('started_at').notNull(),
+}, t => [
+  primaryKey({ columns: [t.entityId, t.commandId] }),
+  check('upload_hash', sql`length(${t.sha256}) = 64 AND ${t.sha256} NOT GLOB '*[^0-9a-f]*'`),
+  check('upload_size', sql`${t.byteLength} BETWEEN 1 AND 131072`),
+  check('upload_key', sql`${t.objectKey} = 'entities/' || ${t.entityId} || '/sources/' || ${t.sha256}`),
+]);
+export const entityDeletions = sqliteTable('entity_deletions', {
+  entityId: text('entity_id').primaryKey().notNull().references(() => entities.id, { onDelete: 'cascade' }),
+  actorId: text('actor_id').notNull(),
+  startedAt: text('started_at').notNull(),
+});
 export const importReceipts = sqliteTable('import_receipts', {
   entityId: text('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
   commandId: text('command_id').notNull(),

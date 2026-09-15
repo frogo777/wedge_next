@@ -4,26 +4,27 @@ Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-14
 
-**Incremento WDG-004A:** el lector rechaza caracteres XML prohibidos, incluidos los generados por referencias numéricas, conserva los separadores Unicode de XML 1.0 y valida antes de generar huellas. Cinco pruebas adicionales cubren el fallo reproducido y casos válidos; detalles y fuentes en [DOCUMENTOS](DOCUMENTOS.md). La decisión solicitada sobre originales locales o en nube sigue pendiente y no bloquea estas correcciones independientes.
+**Incremento WDG-004B:** el fundador eligió conservar los originales también en la nube privada de Wedge. [ADR 0002](decisions/0002-private-source-storage.md) prepara R2 para bytes y D1 para propiedad, intentos, estado y auditoría. Incluye hash verificado al leer, creación condicional, reintentos D1–R2–D1, límite de 128 KiB y 1,000 fuentes distintas por entidad, y borrado R2 antes de la cascada D1.
 
-Verificación local WDG-004A: `npm run verify` pasa con tipos, 65 pruebas unitarias, build y 16 de integración. Lint: cero errores y el aviso histórico de la plantilla. El resultado remoto se registra en el PR de este incremento.
+El módulo sigue sin ruta HTTP, despliegue, documentos reales o política automática de retención. La migración 0006 es sólo aditiva: una reconstrucción generada durante el desarrollo se descartó antes de guardarla porque las cascadas de D1 podían eliminar fuentes existentes. La prueba de migración conserva expresamente una fuente `metadata_only` previa.
+
+Verificación local WDG-004B: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 22 de integración (87 en total). `npm run db:generate` confirma que no quedan cambios de esquema. Lint: cero errores y el aviso histórico de la plantilla. Auditoría completa: cero avisos altos/críticos y cuatro moderados ya documentados de la cadena Drizzle. El helper de build del plugin Sites 0.1.70 no alcanza el build en Windows porque busca `node_modules/npm`; el comando portátil sí compila correctamente.
 
 ```text
 Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
-Procedencia por entidad      ✓ núcleo y migración preparados; pruebas sintéticas
-Originales de archivos       ○ almacenamiento y retención pendientes
+Procedencia por entidad      ✓ PR #2; núcleo D1 preparado
+Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
+Originales de archivos       △ núcleo D1/R2 probado; ruta y retención pendientes
 Flujo financiero real        ○ todavía no habilitado
 ```
 
 [PR #1](https://github.com/frogo777/wedge_next/pull/1): auditoría, dependencias y comandos portátiles. [CI remoto](https://github.com/frogo777/wedge_next/actions/runs/34929443677) pasó en Windows y Ubuntu para `e8a028b`: tipos, lint, auditoría completa, 60 pruebas unitarias, build y 6 pruebas de Worker. Cero avisos altos/críticos; cuatro moderados de la cadena Drizzle documentados.
 
-WDG-003 incorpora cinco tablas separadas de la demo, una migración aditiva generada por Drizzle y repositorio de entidad/membresía/recepción/fuente/auditoría. SHA-256 se calcula desde bytes, el comando es idempotente por entidad y exportación/borrado verifican membresía dentro del SQL. No hay rutas conectadas a este módulo. Ver [ADR 0001](decisions/0001-entity-provenance.md).
+[PR #2](https://github.com/frogo777/wedge_next/pull/2) prepara entidad/procedencia; [PR #3](https://github.com/frogo777/wedge_next/pull/3) endurece XML; [PR #4](https://github.com/frogo777/wedge_next/pull/4) prepara los originales privados en D1/R2. Los tres permanecen como borradores apilados para revisión antes de integrar o desplegar.
 
-Diez pruebas nuevas en D1/Miniflare verifican aislamiento, referencias cruzadas, concurrencia, rollback completo ante fallo de auditoría, contexto revocado, exportación, borrado, límites, uso de índice y migración/reversión sobre datos sintéticos. El original no se guarda: cada fuente se identifica expresamente como `metadata_only`. No hay migración remota, documentos reales ni cambios de cálculo fiscal.
+Dieciséis pruebas D1/R2 en Miniflare cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. Exportar metadatos no filtra claves internas del bucket. El original sólo puede leerse desde la función de servidor y su tamaño/hash se comprueban de nuevo.
 
-Verificación local del incremento: `npm run verify` pasa (tipos, 60 unitarias, build, 16 de integración); `npm run lint` pasa con el mismo aviso histórico. CI del incremento de dominio se registra en su PR separado.
-
-**Siguiente:** completar almacenamiento privado del original, retención y exportación/borrado conjuntos antes de conectar una ruta de importación. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** acordar retención y alcance de respaldos, probar restauración sintética y después diseñar la ruta autenticada por lotes. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 

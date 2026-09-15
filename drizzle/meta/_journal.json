@@ -43,6 +43,13 @@
       "when": 1789447168289,
       "tag": "0005_young_pandemic",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789449053361,
+      "tag": "0006_fancy_maggott",
+      "breakpoints": true
     }
   ]
 }

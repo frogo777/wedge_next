@@ -40,7 +40,7 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-003 — entidad fiscal, procedencia y auditoría
 
-**Estado: núcleo preparado, activación pendiente.** [ADR 0001](decisions/0001-entity-provenance.md), cinco tablas aditivas, repositorio y diez pruebas D1 sintéticas. Se modela una recepción por archivo/comando; un lote de múltiples archivos se coordinará en WDG-004. No se persiste RFC ni original; fuentes marcadas `metadata_only`. Falta conectar rutas después de resolver almacenamiento y privacidad, y desplegar la migración mediante el flujo de Sites.
+**Estado: núcleo preparado, activación pendiente.** [ADR 0001](decisions/0001-entity-provenance.md) y [ADR 0002](decisions/0002-private-source-storage.md), ocho tablas aditivas y repositorio con pruebas D1/R2 sintéticas. Se modela una recepción por archivo/comando; un lote de múltiples archivos se coordinará en WDG-004. No se persiste RFC. Los originales futuros se separan en R2 privado; faltan retención, ruta autenticada, restauración y despliegue mediante Sites.
 
 - **Meta / valor:** aislar cada contribuyente y explicar cada cambio.
 - **Incluye:** ADR/invariantes, migraciones aditivas para entity/membership/import/artifact/audit; repositorios transaccionales.
@@ -52,7 +52,7 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-004 — importación manual segura de CFDI
 
-**Avance preparatorio WDG-004A:** corregida la aceptación de caracteres XML prohibidos y la normalización de saltos XML 1.1; cinco pruebas adversariales nuevas. La carga de originales y su retención siguen pendientes de la decisión de almacenamiento solicitada al fundador.
+**Avance preparatorio WDG-004A/B:** corregida la aceptación de caracteres XML prohibidos y la normalización de saltos XML 1.1; cinco pruebas adversariales nuevas. El fundador eligió conservar originales también en la nube privada. El binding R2 y el núcleo D1–R2 preparan carga, lectura íntegra, reintentos, cuota y borrado conjunto; siguen pendientes retención, restauración, ruta de ingesta y despliegue.
 
 - **Meta / valor:** reemplazar el catálogo cerrado por un flujo útil sin conectar SAT.
 - **Incluye:** lote, límites, cuarentena, hash, parsing CFDI 4.0, resultados parciales y archivos sintéticos/adversariales.
