@@ -2,7 +2,8 @@
 // No HTTP route uses this module while privacy gates in ADR 0002 remain open.
 export type Identity = Readonly<{ userId: string }>;
 type Row = Record<string, string | number | null>;
-type Failure = 'invalid_input' | 'not_found' | 'command_conflict' | 'limit_exceeded' | 'storage_error';
+type Failure = 'invalid_input' | 'not_found' | 'command_conflict' | 'export_incomplete'
+  | 'limit_exceeded' | 'storage_error';
 export class DomainError extends Error {
   readonly code: Failure;
   constructor(code: Failure) { super(code); this.name = 'DomainError'; this.code = code; }
@@ -174,16 +175,21 @@ export async function readSource(db: D1Database, bucket: R2Bucket, identity: Ide
     JOIN financial_entities e ON e.id = s.entity_id AND ${activeEntity}
     WHERE s.entity_id = ? AND s.sha256 = ? AND ${permitted}`).bind(entity, hash, entity, user));
   if (!source || typeof source.object_key !== 'string') throw new DomainError('not_found');
+  let bytes: Uint8Array<ArrayBuffer>;
   try {
     const object = await bucket.get(source.object_key);
     if (!object || object.size !== source.byte_length) throw new DomainError('storage_error');
-    const bytes = new Uint8Array(await object.arrayBuffer());
+    bytes = new Uint8Array(await object.arrayBuffer());
     if ((await sha256(bytes)).hex !== hash) throw new DomainError('storage_error');
-    return { bytes, sha256: hash, mediaType: source.media_type as string };
   } catch (error) {
     if (error instanceof DomainError) throw error;
     throw new DomainError('storage_error');
   }
+  // A slow R2 read must not outlive entity access or a deletion request.
+  const stillAuthorized = await queryFirst(db, db.prepare(`SELECT e.id FROM financial_entities e
+    WHERE e.id = ? AND ${activeEntity} AND ${permitted}`).bind(entity, entity, user));
+  if (!stillAuthorized) throw new DomainError('not_found');
+  return { bytes, sha256: hash, mediaType: source.media_type as string };
 }
 
 export async function exportEntity(db: D1Database, identity: Identity, entityId: string) {
@@ -209,6 +215,72 @@ export async function exportEntity(db: D1Database, identity: Identity, entityId:
   return { formatVersion: 2, entity: results[0].results[0], memberships: results[1].results,
     sources: results[2].results, receipts: results[3].results, audit: results[4].results,
     pendingUploads: results[5].results };
+}
+
+export type EntityExportFile = Readonly<{
+  path: string;
+  mediaType: string;
+  byteLength: number;
+  sha256: string;
+  bytes: Uint8Array<ArrayBuffer>;
+}>;
+
+// Produces a stable manifest first, then one verified original at a time. A caller must
+// discard partial output if iteration fails and only publish an archive after completion.
+export async function* exportEntityFiles(db: D1Database, bucket: R2Bucket, identity: Identity,
+  entityId: string): AsyncGenerator<EntityExportFile> {
+  const entity = key(entityId);
+  const metadata = await exportEntity(db, identity, entity);
+  if (metadata.entity.state !== 'active') throw new DomainError('not_found');
+  if (metadata.pendingUploads.length > 0) throw new DomainError('export_incomplete');
+  if (metadata.sources.length > MAX_SOURCES_PER_ENTITY) throw new DomainError('limit_exceeded');
+
+  const originals: Array<Readonly<{
+    path: string;
+    sha256: string;
+    byteLength: number;
+    mediaType: string;
+  }>> = [];
+  let totalBytes = 0;
+  for (const row of metadata.sources) {
+    if (typeof row.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(row.sha256)
+      || typeof row.byte_length !== 'number' || !Number.isInteger(row.byte_length)
+      || row.byte_length < 1 || row.byte_length > 131072
+      || row.media_type !== 'application/xml') throw new DomainError('storage_error');
+    if (row.storage_state !== 'stored') throw new DomainError('export_incomplete');
+    originals.push({
+      path: `sources/${row.sha256}.xml`,
+      sha256: row.sha256,
+      byteLength: row.byte_length,
+      mediaType: row.media_type,
+    });
+    totalBytes += row.byte_length;
+  }
+
+  const manifest = {
+    format: 'wedge-full-export',
+    formatVersion: 1,
+    metadata,
+    originals,
+    summary: { originalCount: originals.length, originalBytes: totalBytes },
+  } as const;
+  const manifestBytes = new TextEncoder().encode(`${JSON.stringify(manifest, null, 2)}\n`);
+  const manifestHash = await sha256(manifestBytes);
+  yield {
+    path: 'manifest.json',
+    mediaType: 'application/json',
+    byteLength: manifestBytes.byteLength,
+    sha256: manifestHash.hex,
+    bytes: manifestBytes,
+  };
+
+  for (const planned of originals) {
+    const source = await readSource(db, bucket, identity, entity, planned.sha256);
+    if (source.mediaType !== planned.mediaType || source.bytes.byteLength !== planned.byteLength) {
+      throw new DomainError('storage_error');
+    }
+    yield { ...planned, bytes: source.bytes };
+  }
 }
 
 export async function eraseEntity(db: D1Database, bucket: R2Bucket, identity: Identity, entityId: string) {

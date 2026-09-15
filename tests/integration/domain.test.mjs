@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Miniflare } from 'miniflare';
-import { createEntity, recordSource, readSource, exportEntity, eraseEntity, auditEntityStorage,
+import { createEntity, recordSource, readSource, exportEntity, exportEntityFiles, eraseEntity, auditEntityStorage,
   MAX_SOURCES_PER_ENTITY } from '../../packages/domain/repository.ts';
 
 // Real D1 semantics in an isolated local runtime. No HTTP route or real tax data.
@@ -69,6 +69,93 @@ test('Dominio: conserva bytes originales privados y exporta procedencia sin filt
   assert.deepEqual(exported.pendingUploads, []);
   const original = await readSource(db, bucket, alice, entity.id, receipt.sha256);
   assert.deepEqual(original.bytes, bytes('abc'));
+});
+
+test('Dominio: exportación completa entrega manifiesto y originales verificados de forma incremental', async () => {
+  const entity = await createEntity(db, alice);
+  const receipts = [
+    await recordSource(db, bucket, alice, entity.id, 'export-abc', bytes('abc')),
+    await recordSource(db, bucket, alice, entity.id, 'export-def', bytes('def')),
+  ];
+  const reads = [];
+  const observed = wrapBucket({ get: async key => { reads.push(key); return bucket.get(key); } });
+  const iterator = exportEntityFiles(db, observed, alice, entity.id);
+
+  const first = await iterator.next();
+  assert.equal(first.done, false); assert.equal(first.value.path, 'manifest.json');
+  assert.equal(first.value.mediaType, 'application/json'); assert.equal(reads.length, 0);
+  assert.equal(first.value.byteLength, first.value.bytes.byteLength);
+  const manifestDigest = Buffer.from(await crypto.subtle.digest('SHA-256', first.value.bytes)).toString('hex');
+  assert.equal(first.value.sha256, manifestDigest);
+  const manifestText = new TextDecoder().decode(first.value.bytes);
+  const manifest = JSON.parse(manifestText);
+  assert.equal(manifest.format, 'wedge-full-export'); assert.equal(manifest.formatVersion, 1);
+  assert.equal(manifest.metadata.entity.id, entity.id);
+  assert.deepEqual(manifest.summary, { originalCount: 2, originalBytes: 6 });
+  assert.deepEqual(manifest.originals.map(file => file.sha256), receipts.map(row => row.sha256).sort());
+  assert.equal(manifestText.includes('object_key'), false);
+  assert.equal(manifestText.includes(`entities/${entity.id}/sources/`), false);
+
+  const expected = new Map([[receipts[0].sha256, bytes('abc')], [receipts[1].sha256, bytes('def')]]);
+  const originals = [];
+  for await (const file of iterator) {
+    originals.push(file);
+    assert.equal(reads.length, originals.length);
+    assert.deepEqual(file.bytes, expected.get(file.sha256));
+    assert.equal(file.path, `sources/${file.sha256}.xml`);
+    assert.equal(file.mediaType, 'application/xml'); assert.equal(file.byteLength, 3);
+  }
+  assert.equal(originals.length, 2);
+});
+
+test('Dominio: el manifiesto fija una foto y excluye fuentes recibidas después', async () => {
+  const entity = await createEntity(db, alice);
+  const included = await recordSource(db, bucket, alice, entity.id, 'snapshot-included', bytes('abc'));
+  const iterator = exportEntityFiles(db, bucket, alice, entity.id);
+  const first = await iterator.next();
+  const manifest = JSON.parse(new TextDecoder().decode(first.value.bytes));
+  const later = await recordSource(db, bucket, alice, entity.id, 'snapshot-later', bytes('def'));
+  const originals = [];
+  for await (const file of iterator) originals.push(file);
+  assert.deepEqual(manifest.originals.map(file => file.sha256), [included.sha256]);
+  assert.deepEqual(originals.map(file => file.sha256), [included.sha256]);
+  assert.notEqual(later.sha256, included.sha256);
+});
+
+test('Dominio: exportación completa rechaza originales ausentes e intentos pendientes', async () => {
+  const metadataOnly = await createEntity(db, alice);
+  await db.prepare(`INSERT INTO source_artifacts (entity_id, sha256, byte_length, created_at)
+    VALUES (?, ?, 3, '2026-09-14')`).bind(metadataOnly.id, '1'.repeat(64)).run();
+  await assert.rejects(exportEntityFiles(db, bucket, alice, metadataOnly.id).next(), code('export_incomplete'));
+
+  const pending = await createEntity(db, alice);
+  const unavailable = wrapBucket({ put: async () => { throw new Error('synthetic R2 detail'); } });
+  await assert.rejects(recordSource(db, unavailable, alice, pending.id, 'export-pending', bytes('abc')), code('storage_error'));
+  await assert.rejects(exportEntityFiles(db, bucket, alice, pending.id).next(), code('export_incomplete'));
+});
+
+test('Dominio: exportación aborta si R2 está alterado o el acceso se revoca durante la lectura', async () => {
+  const corrupt = await createEntity(db, alice);
+  const damaged = await recordSource(db, bucket, alice, corrupt.id, 'export-corrupt', bytes('abc'));
+  await bucket.put(objectPath(corrupt.id, damaged.sha256), bytes('damaged'));
+  const corruptExport = exportEntityFiles(db, bucket, alice, corrupt.id);
+  assert.equal((await corruptExport.next()).value.path, 'manifest.json');
+  await assert.rejects(corruptExport.next(), code('storage_error'));
+
+  const revoked = await createEntity(db, alice);
+  await recordSource(db, bucket, alice, revoked.id, 'export-revoked', bytes('abc'));
+  let enterGet, releaseGet;
+  const entered = new Promise(resolve => { enterGet = resolve; });
+  const release = new Promise(resolve => { releaseGet = resolve; });
+  const delayed = wrapBucket({ get: async key => { enterGet(); await release; return bucket.get(key); } });
+  const revokedExport = exportEntityFiles(db, delayed, alice, revoked.id);
+  assert.equal((await revokedExport.next()).value.path, 'manifest.json');
+  const original = revokedExport.next();
+  await entered;
+  await db.prepare('DELETE FROM entity_memberships WHERE entity_id = ? AND user_id = ?')
+    .bind(revoked.id, alice.userId).run();
+  releaseGet();
+  await assert.rejects(original, code('not_found'));
 });
 
 test('Dominio: el mismo comando completa un recibo metadata_only anterior a R2', async () => {
@@ -164,6 +251,7 @@ test('Dominio: un borrado R2 fallido queda visible y se puede reintentar', async
   await assert.rejects(eraseEntity(db, unavailable, alice, entity.id), code('storage_error'));
   const pending = await exportEntity(db, alice, entity.id);
   assert.equal(pending.entity.state, 'deleting'); assert.equal(pending.sources[0].storage_state, 'deleting');
+  await assert.rejects(exportEntityFiles(db, bucket, alice, entity.id).next(), code('not_found'));
   await assert.rejects(readSource(db, bucket, alice, entity.id, receipt.sha256), code('not_found'));
   await eraseEntity(db, bucket, alice, entity.id);
   assert.equal(await bucket.head(objectPath(entity.id, receipt.sha256)), null);
