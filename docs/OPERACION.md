@@ -33,7 +33,7 @@ No hay ejercicio de restauración remota verificado. Antes de recibir datos real
 | Exportación y eliminación del registro activo | Probado técnicamente |
 | Inicio/cierre de sesión y recarga en dispositivos reales | Pendiente |
 | Responsable, canal de atención y aviso definitivo | Pendiente |
-| Retención y prueba de restauración | Recomendación preparada; auditoría local probada; decisión y restore remoto pendientes |
+| Retención y prueba de restauración | Política del piloto aprobada y auditoría local probada; restore remoto pendiente |
 | Motor fiscal revisado por profesional | No implementado |
 | Acuerdos de alcance, precio y cancelación | Pendiente |
 

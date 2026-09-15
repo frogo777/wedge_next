@@ -6,7 +6,7 @@ Fecha canónica: 2026-09-14. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 **Incremento WDG-009A:** auditoría de consistencia D1/R2 de sólo lectura y [recomendación de retención/recuperación](research/RETENTION-RECOVERY-2026-09-14.md). Autoriza antes de listar y antes de responder, pagina de forma acotada y permite verificar el SHA-256 real. Distingue sano, trabajo pendiente, faltante, alterado, huérfano, conflicto de seguimiento y cambio concurrente sin devolver bytes.
 
-La recomendación para el piloto es conservar mientras la entidad esté activa y borrar D1/R2 activos cuando el fundador lo solicite, sin bucket lock ni segunda copia oculta. Falta aprobación del fundador; antes de beta también faltan exportación completa, registro de borrados resistente a restores y un simulacro remoto aislado. D1 Time Travel y la durabilidad de R2 no se presentan como backup recuperable del original.
+El fundador aprobó conservar mientras la entidad esté activa y borrar D1/R2 activos cuando lo solicite, sin bucket lock ni segunda copia oculta. Antes de datos reales todavía faltan exportación completa, registro de borrados resistente a restores y un simulacro remoto aislado. D1 Time Travel y la durabilidad de R2 no se presentan como backup recuperable del original.
 
 Verificación WDG-009A: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 26 de integración (91 en total). Veinte pruebas corresponden al dominio D1/R2 y seis al Worker.
 
@@ -20,8 +20,9 @@ Verificación local WDG-004B: `npm run verify` pasa con typecheck, 65 pruebas un
 Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
 Procedencia por entidad      ✓ PR #2; núcleo D1 preparado
 Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
-Originales de archivos       △ núcleo D1/R2 probado; ruta y retención pendientes
+Originales de archivos       △ núcleo D1/R2 probado; ruta y exportación pendientes
 Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
+Retención del piloto         ✓ política aprobada; revisión jurídica antes de datos reales
 Flujo financiero real        ○ todavía no habilitado
 ```
 
@@ -31,7 +32,7 @@ Flujo financiero real        ○ todavía no habilitado
 
 Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y revocación. Exportar metadatos no filtra claves internas del bucket. El original sólo puede leerse desde la función de servidor y su tamaño/hash se comprueban de nuevo.
 
-**Siguiente:** aprobar la recomendación de retención, implementar exportación completa y diseñar un registro de borrados que impida reactivar datos durante un restore. Después se probará recuperación remota sintética antes de una ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** implementar exportación completa y diseñar un registro de borrados que impida reactivar datos durante un restore. Después se probará recuperación remota sintética antes de una ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 

@@ -1,6 +1,6 @@
 # Retención y recuperación de originales — 2026-09-14
 
-Estado: recomendación para el piloto privado; pendiente de decisión del fundador y revisión jurídica antes de datos reales. No configura retención, backups ni recursos remotos.
+Estado: política del piloto privado aprobada por el fundador el 2026-09-14; requiere revisión jurídica antes de datos reales o beta externa. No configura backups ni recursos remotos.
 
 ## Evidencia oficial
 
@@ -51,8 +51,8 @@ Esta opción mantiene utilidad para un solo fundador, evita costo/retención dup
 
 La auditoría añadida es de sólo lectura, autoriza en D1 antes de listar R2, pagina hasta 2,000 objetos y no devuelve bytes. La verificación completa hace una lectura por objeto; debe ser una operación manual porque consume operaciones clase B y no reemplaza observabilidad continua. D1 y R2 no ofrecen una instantánea transaccional conjunta: si hay escrituras durante el recorrido, el informe puede marcar un cambio concurrente y debe repetirse.
 
-## Decisión requerida
+## Decisión aprobada
 
-Recomendación a aprobar: **durante el piloto privado, conservar mientras la entidad esté activa; borrar D1/R2 activos cuando el fundador lo solicite; no usar bucket lock ni una segunda copia de originales; exigir exportación y copia propia antes de uso real.**
+El fundador aprobó: **durante el piloto privado, conservar mientras la entidad esté activa; borrar D1/R2 activos cuando lo solicite; no usar bucket lock ni una segunda copia de originales; exigir exportación y copia propia antes de uso real.**
 
 Antes de beta externa todavía se debe fijar el plazo por inactividad/cierre, la política para backups del proveedor, el responsable/canal de privacidad y el registro de borrados resistente a una restauración.
