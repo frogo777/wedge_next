@@ -10,6 +10,8 @@ Verificación local WDG-009E: `npm run verify` pasa con typecheck, 70 pruebas un
 
 Verificación remota preparatoria WDG-009E: el commit `806be4c` se guardó y publicó como versión privada 13 de [Wedge en Sites](https://wedge-next.hola192112.chatgpt.site). Una recarga autenticada devolvió el resumen vacío esperado y no hubo eventos de error del Worker. No se añadieron variables S3, recursos Cloudflare ni datos reales; el comportamiento remoto de lock/lifecycle sigue pendiente de la activación de R2.
 
+El head `45c113f` pasó [CI Windows/Ubuntu](https://github.com/frogo777/wedge_next/actions/runs/35065710803): instalación bloqueada, tipos, lint, auditoría completa, 70 pruebas unitarias, build y 37 pruebas de integración. El aviso de lint de la plantilla permanece documentado.
+
 **Incremento WDG-009D:** la demo enlaza cada cuenta con una entidad privada al procesar el catálogo cerrado, conserva esos XML sintéticos en R2 y ofrece una descarga ZIP autenticada con progreso, manifiesto y originales verificados. El ZIP se transmite sin acumular la exportación completa en memoria y sólo escribe su directorio final al concluir; un fallo deja una descarga inválida. El borrado de Privacidad alcanza ahora progreso, entidad y objetos R2 activos antes de confirmar. No existe carga de archivos propios.
 
 Verificación local WDG-009D: `npm run verify` pasa con typecheck, 67 pruebas unitarias, build y 36 de integración (103 en total). Los casos nuevos cubren ZIP y rutas seguras, entidad única bajo concurrencia, reintento, autenticación/origen, almacenamiento R2, descarga repetida y borrado D1/R2 con tombstone. Lint pasa y la auditoría de producción reporta cero vulnerabilidades. La migración 0007 es aditiva y crea sólo el enlace uno-a-uno de la demo.
