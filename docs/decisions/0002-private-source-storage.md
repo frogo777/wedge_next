@@ -1,6 +1,6 @@
 # ADR 0002 — Originales en almacenamiento privado de Wedge
 
-Fecha: 2026-09-14. Estado: aceptada por el fundador. El núcleo y una descarga autenticada están implementados con datos sintéticos; la publicación del adaptador y su migración está pendiente.
+Fecha: 2026-09-14. Estado: aceptada por el fundador. El núcleo, la descarga autenticada y su migración están publicados con datos sintéticos en la versión privada 12; la prueba desde una sesión real está pendiente.
 
 ## Decisión
 

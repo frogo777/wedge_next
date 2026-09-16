@@ -1,6 +1,6 @@
 # Exportación completa de una entidad
 
-Fecha: 2026-09-15. Implementación local con datos sintéticos; publicación remota pendiente.
+Fecha: 2026-09-15. Implementación con datos sintéticos publicada en la versión privada 12 de Sites; prueba controlada desde la sesión real pendiente.
 
 ## Salida
 
@@ -44,4 +44,4 @@ El navegador hace visible el resultado sólo después de consumir la respuesta c
 
 La interfaz actual reúne el ZIP completo en memoria antes de iniciar la descarga. Esto es acotado para los seis ejemplos pequeños del catálogo cerrado; debe sustituirse por una descarga nativa o escrita a disco antes de admitir lotes o archivos reales.
 
-La prueba remota en Sites sigue pendiente. El registro de borrados y su reconciliador están probados localmente, pero faltan lock/lifecycle y simulacro remoto. La carga de documentos reales permanece cerrada hasta validar una copia completa controlada por el fundador.
+Sites desplegó la ruta y la migración 0007, y rechaza solicitudes sin identidad válida. Todavía falta una descarga controlada desde la sesión real que ejercite R2 remoto. El registro de borrados y su reconciliador están probados localmente, pero faltan lock/lifecycle y simulacro de restauración remoto. La carga de documentos reales permanece cerrada hasta completar esas pruebas.
