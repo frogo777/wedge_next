@@ -1,5 +1,6 @@
 // Server-only entry point. Identity MUST come from authenticated server context.
-// No HTTP route uses this module while privacy gates in ADR 0002 remain open.
+// The HTTP adapter is limited to the closed synthetic demo catalog; user uploads
+// remain disabled while the privacy gates in ADR 0002 are open.
 export type Identity = Readonly<{ userId: string }>;
 type Row = Record<string, string | number | null>;
 type Failure = 'invalid_input' | 'not_found' | 'command_conflict' | 'export_incomplete'

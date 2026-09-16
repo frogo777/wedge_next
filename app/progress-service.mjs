@@ -16,12 +16,16 @@ function decode(row){
  if(!['preparing','reviewed','approved','filed','paid'].includes(row.stage)||!Array.isArray(resolved)||resolved.some(id=>!taskIds.includes(id))||!Number.isSafeInteger(row.version)||row.version<1)throw new Error('Invalid stored progress');
  return {stage:row.stage,resolved,version:row.version,updatedAt:row.updated_at,revision:row.revision,documents,collections,decisions};
 }
-export async function handleProgress(request,db){
+export async function readProgressSnapshot(db,userId){
+ const row=await db.prepare(SELECT).bind(userId).first();
+ const state=decode(row);
+ return {state,record:row?{userId,...state}:null};
+}
+export async function handleProgress(request,db,hooks={}){
  // Identity headers are supplied by Sites dispatch, never by a body or query parameter.
  // This Worker must remain behind that dispatcher; direct standalone hosting needs its own authentication.
  const userId=request.headers.get('oai-authenticated-user-id');
- if(!userId)return json({error:'unauthorized'},401);
- if(userId.length>512)return json({error:'unauthorized'},401);
+ if(!userId||!userId.trim()||userId.length>256)return json({error:'unauthorized'},401);
  if(!['GET','POST'].includes(request.method))return json({error:'method_not_allowed'},405);
  if(request.method==='POST'){
   const origin=request.headers.get('origin');
@@ -53,6 +57,7 @@ export async function handleProgress(request,db){
   const row=await db.prepare(SELECT).bind(userId).first();const state=decode(row);
   if(state.version!==body.version||state.revision!==body.revision)return json({error:'version_conflict'},409);
   if(e.type==='ERASE'){
+   if(hooks.beforeErase)await hooks.beforeErase({userId});
    if(row){const result=await db.prepare('DELETE FROM demo_progress WHERE user_id=? AND version=? AND revision=?').bind(userId,state.version,state.revision).run();if(result.meta.changes!==1)return json({error:'version_conflict'},409);}
    return json({state:decode(null),deleted:true});
   }
@@ -71,6 +76,7 @@ export async function handleProgress(request,db){
   if(e.type==='ADD_DOCUMENT'){
    documentResult=await analyzeDocument(e.id,samples[e.id],documents);
    if(documents.some(d=>d.sampleId===e.id)||documentResult.status==='duplicate')return json({state,documentResult});
+   if(hooks.beforeAddDocument)await hooks.beforeAddDocument({userId,sampleId:e.id,xml:samples[e.id]});
    documents=[...documents,{...documentResult,processedAt:new Date().toISOString()}];
   }
   const next=e.type==='ADD_DOCUMENT'||isCollection||isDecision?{stage:state.stage,resolved:state.resolved}:transition({stage:state.stage,resolved:state.resolved},e);

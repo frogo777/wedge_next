@@ -18,11 +18,11 @@ D1 guarda una fila por usuario: identificador, estado del cierre de agosto ficti
 
 La API recibe eventos, nunca un estado fiscal arbitrario. Usa consultas preparadas filtradas por usuario, aplica la máquina de estados y realiza escritura condicional por versión y revisión. Una operación concurrente o antigua recibe 409 y obliga a recargar. Un fallo de red no provoca reintentos automáticos de una escritura cuyo resultado se desconoce.
 
-### Núcleo de originales privados, sin ruta
+### Núcleo de originales privados, activado sólo para ejemplos sintéticos
 
 La evolución preparatoria separa datos estructurados en D1 y bytes originales en el binding privado R2 `BUCKET`. Un intento se registra antes de la carga; la finalización enlaza hash, recibo y auditoría. La lectura vuelve a calcular SHA-256 y autoriza otra vez después de obtener los bytes. La exportación fija un manifiesto D1 y entrega cada original verificado de forma incremental. El borrado bloquea acceso, registra primero una huella con política aprobada de 45 días bajo `deletions/v1/`, elimina todos los objetos de la entidad y después aplica la cascada D1; los fallos son reintentables. El reconciliador offline aplica esas huellas después de un restore. Las claves de objeto sólo contienen UUID y hash; el tombstone contiene únicamente una huella del UUID y cero bytes.
 
-Este módulo no está conectado a la API. Sus migraciones aditivas se publicaron en la versión privada 11 de Sites y las tablas del dominio permanecen vacías; al no existir una ruta que importe el repositorio, su código inactivo queda fuera del bundle runtime. No recibe documentos reales ni modifica el inventario de la demo. [ADR 0002](decisions/0002-private-source-storage.md) detalla cuotas, concurrencia, costos y las condiciones de restauración pendientes; [EXPORTACION.md](EXPORTACION.md) define el formato de salida.
+La demo conecta este módulo únicamente al catálogo cerrado de XML sintéticos. Al procesar un ejemplo, una tabla puente de relación uno-a-uno crea o reutiliza la entidad privada de esa cuenta y guarda los bytes en R2. La ruta autenticada de exportación transmite un ZIP con el progreso, manifiesto y originales verificados; eliminar el progreso borra también D1/R2 activos antes de confirmar. La interfaz no acepta archivos aportados por el usuario y el simulador fiscal permanece separado. [ADR 0002](decisions/0002-private-source-storage.md) detalla cuotas, concurrencia, costos y las condiciones de restauración pendientes; [EXPORTACION.md](EXPORTACION.md) define el formato de salida.
 
 ### Controles implementados
 

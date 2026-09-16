@@ -4,6 +4,10 @@ Fecha canónica: 2026-09-15. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-15
 
+**Incremento WDG-009D:** la demo enlaza cada cuenta con una entidad privada al procesar el catálogo cerrado, conserva esos XML sintéticos en R2 y ofrece una descarga ZIP autenticada con progreso, manifiesto y originales verificados. El ZIP se transmite sin acumular la exportación completa en memoria y sólo escribe su directorio final al concluir; un fallo deja una descarga inválida. El borrado de Privacidad alcanza ahora progreso, entidad y objetos R2 activos antes de confirmar. No existe carga de archivos propios.
+
+Verificación local WDG-009D: `npm run verify` pasa con typecheck, 67 pruebas unitarias, build y 36 de integración (103 en total). Los casos nuevos cubren ZIP y rutas seguras, entidad única bajo concurrencia, reintento, autenticación/origen, almacenamiento R2, descarga repetida y borrado D1/R2 con tombstone. Lint pasa y la auditoría de producción reporta cero vulnerabilidades. La migración 0007 es aditiva y crea sólo el enlace uno-a-uno de la demo. Publicación y prueba remota pendientes.
+
 **Incremento WDG-009C ([PR #7](https://github.com/frogo777/wedge_next/pull/7)):** el fundador aprobó [ADR 0003](decisions/0003-restore-safe-deletion-registry.md). El borrado marca D1, registra en R2 un tombstone de cero bytes y UUID hasheado, y después elimina objetos y entidad. Fallos conservan `deleting`; reintentos validan el tombstone existente. Un reconciliador offline paginado detecta entidades revividas y elimina también objetos huérfanos. El lock/lifecycle de 45 días sigue limitado al prefijo `deletions/v1/`, pero no pudo configurarse en nube porque el R2 de Sites no pertenece a la cuenta Cloudflare conectada; el [runbook](runbooks/R2-DELETION-POLICY.md) fija el cambio, la verificación y el desbloqueo requerido.
 
 Verificación local WDG-009C: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 34 de integración (99 en total). Veintiocho pruebas corresponden al dominio D1/R2 y seis al Worker. Los casos nuevos cubren fallo del registro, reintento, minimización, restore D1 sintético, paginación acotada y tombstone alterado.
@@ -22,7 +26,7 @@ Verificación WDG-009A: `npm run verify` pasa con typecheck, 65 pruebas unitaria
 
 **Base WDG-004B:** el fundador eligió conservar los originales también en la nube privada de Wedge. [ADR 0002](decisions/0002-private-source-storage.md) prepara R2 para bytes y D1 para propiedad, intentos, estado y auditoría. Incluye hash verificado al leer, creación condicional, reintentos D1–R2–D1, límite de 128 KiB y 1,000 fuentes distintas por entidad, y borrado R2 antes de la cascada D1.
 
-El módulo sigue sin ruta HTTP, despliegue, documentos reales o política automática de retención. La migración 0006 es sólo aditiva: una reconstrucción generada durante el desarrollo se descartó antes de guardarla porque las cascadas de D1 podían eliminar fuentes existentes. La prueba de migración conserva expresamente una fuente `metadata_only` previa.
+En ese corte el módulo seguía sin ruta HTTP, despliegue, documentos reales o política automática de retención. La migración 0006 es sólo aditiva: una reconstrucción generada durante el desarrollo se descartó antes de guardarla porque las cascadas de D1 podían eliminar fuentes existentes. La prueba de migración conserva expresamente una fuente `metadata_only` previa.
 
 Verificación local WDG-004B: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 22 de integración (87 en total). `npm run db:generate` confirma que no quedan cambios de esquema. Lint: cero errores y el aviso histórico de la plantilla. Auditoría completa: cero avisos altos/críticos y cuatro moderados ya documentados de la cadena Drizzle. El helper de build del plugin Sites 0.1.70 no alcanza el build en Windows porque busca `node_modules/npm`; el comando portátil sí compila correctamente.
 
@@ -30,7 +34,7 @@ Verificación local WDG-004B: `npm run verify` pasa con typecheck, 65 pruebas un
 Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
 Procedencia por entidad      ✓ PR #2; núcleo D1 preparado
 Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
-Originales de archivos       △ D1/R2 y exportación probados; rutas pendientes
+Originales de archivos       △ ZIP sintético listo; archivos externos cerrados
 Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
 Retención del piloto         ✓ política aprobada; revisión jurídica antes de datos reales
 Registro contra restores     △ esquema remoto vacío; política R2 bloqueada por Sites
@@ -43,7 +47,7 @@ Flujo financiero real        ○ todavía no habilitado
 
 Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y WDG-009B cuatro de exportación completa. El manifiesto no filtra claves internas del bucket. Los originales sólo salen por la función de servidor, de uno en uno y con autorización posterior a la lectura de R2.
 
-**Siguiente:** obtener control administrativo del R2 de Sites o aprobar una migración a infraestructura Cloudflare propia; entonces configurar/probar lock, lifecycle y recuperación remota sintética. En paralelo puede añadirse la descarga autenticada y validarse una copia controlada por el fundador antes de abrir la ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** publicar y validar una copia sintética controlada en Sites. Después, obtener control administrativo del R2 de Sites o aprobar una migración a infraestructura Cloudflare propia para configurar/probar lock, lifecycle y recuperación remota. Los archivos externos permanecen cerrados hasta completar esas pruebas y los controles de ingesta. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 

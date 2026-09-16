@@ -1,7 +1,8 @@
 import { sql } from 'drizzle-orm';
-import { sqliteTable, text, integer, primaryKey, foreignKey, check } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, primaryKey, foreignKey, check, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-// Preparatory domain; no application route writes here yet. See ADR 0001.
+// Preparatory domain. Only the closed synthetic demo catalog writes here;
+// user-provided fiscal documents remain disabled. See ADR 0001 and ADR 0002.
 export const entities = sqliteTable('financial_entities', {
   id: text('id').primaryKey().notNull(),
   createdAt: text('created_at').notNull(),
@@ -78,3 +79,12 @@ export const auditEvents = sqliteTable('audit_events', {
   foreignKey({ columns: [t.entityId, t.commandId], foreignColumns: [importReceipts.entityId, importReceipts.commandId] }),
   check('audit_kind', sql`(${t.kind} = 'entity_created' AND ${t.commandId} IS NULL) OR (${t.kind} = 'source_received' AND ${t.commandId} IS NOT NULL)`),
 ]);
+
+// Synthetic-only bridge between the current demo account and the preparatory
+// financial domain. It lets the founder exercise private R2 export without
+// accepting user-provided fiscal documents.
+export const demoSourceEntities = sqliteTable('demo_source_entities', {
+  userId: text('user_id').primaryKey().notNull(),
+  entityId: text('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
+  createdAt: text('created_at').notNull(),
+}, t => [uniqueIndex('uq_demo_source_entities_entity').on(t.entityId)]);

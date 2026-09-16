@@ -32,7 +32,7 @@ Se utiliza `import_receipts` por archivo/comando, en lugar de anticipar un lote 
 
 La migración 0005 creó fuentes con estado explícito `metadata_only`: conserva hash/tamaño y no contiene el original. La migración aditiva de [ADR 0002](0002-private-source-storage.md) puede asociar después un objeto privado sin reconstruir esta tabla. Una recepción no significa CFDI válido, conciliación, asiento, declaración ni pago. No se incluyen saldos, reglas fiscales, estimaciones o hipótesis de IA.
 
-El módulo queda sin rutas de aplicación hasta cerrar retención, restauración, controles de carga y revisión del acceso. La privacidad actual de la demo sigue describiendo sólo `demo_progress`. Las pruebas usan exclusivamente identidades y bytes sintéticos.
+La activación posterior WDG-009D conecta únicamente el catálogo sintético cerrado a una ruta autenticada de exportación y al borrado integral. Los archivos proporcionados por usuarios siguen bloqueados hasta cerrar retención, restauración y controles de carga. Las pruebas usan exclusivamente identidades y bytes sintéticos.
 
 ## Consultas e índices
 

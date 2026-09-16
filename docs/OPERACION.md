@@ -33,7 +33,7 @@ No hay ejercicio de restauración remota verificado. El núcleo de borrado ya de
 |---|---|
 | Aislamiento y conflictos de API | Probado con identidades sintéticas y SQLite |
 | Exportación y eliminación del registro activo | Probado técnicamente |
-| Exportación de originales privados | Núcleo incremental probado; descarga autenticada pendiente |
+| Exportación de originales privados | ZIP autenticado probado localmente con catálogo sintético; publicación pendiente |
 | Inicio/cierre de sesión y recarga en dispositivos reales | Pendiente |
 | Responsable, canal de atención y aviso definitivo | Pendiente |
 | Retención y prueba de restauración | Política, tombstone y reconciliador probados; lock y restore remoto pendientes |

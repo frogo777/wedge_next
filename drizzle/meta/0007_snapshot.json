@@ -1,0 +1,718 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "c0b4beec-704d-4916-bfe3-5e3588b83188",
+  "prevId": "7d03a30a-5da9-4046-8b8c-43e7d815fc25",
+  "tables": {
+    "demo_progress": {
+      "name": "demo_progress",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stage": {
+          "name": "stage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resolved": {
+          "name": "resolved",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "documents": {
+          "name": "documents",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "collections": {
+          "name": "collections",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "decisions": {
+          "name": "decisions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "revision": {
+          "name": "revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'legacy'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "audit_events": {
+      "name": "audit_events",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "command_id": {
+          "name": "command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "audit_events_entity_id_financial_entities_id_fk": {
+          "name": "audit_events_entity_id_financial_entities_id_fk",
+          "tableFrom": "audit_events",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "audit_events_entity_id_command_id_import_receipts_entity_id_command_id_fk": {
+          "name": "audit_events_entity_id_command_id_import_receipts_entity_id_command_id_fk",
+          "tableFrom": "audit_events",
+          "tableTo": "import_receipts",
+          "columnsFrom": [
+            "entity_id",
+            "command_id"
+          ],
+          "columnsTo": [
+            "entity_id",
+            "command_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "audit_events_entity_id_event_id_pk": {
+          "columns": [
+            "entity_id",
+            "event_id"
+          ],
+          "name": "audit_events_entity_id_event_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "audit_kind": {
+          "name": "audit_kind",
+          "value": "(\"audit_events\".\"kind\" = 'entity_created' AND \"audit_events\".\"command_id\" IS NULL) OR (\"audit_events\".\"kind\" = 'source_received' AND \"audit_events\".\"command_id\" IS NOT NULL)"
+        }
+      }
+    },
+    "demo_source_entities": {
+      "name": "demo_source_entities",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "uq_demo_source_entities_entity": {
+          "name": "uq_demo_source_entities_entity",
+          "columns": [
+            "entity_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "demo_source_entities_entity_id_financial_entities_id_fk": {
+          "name": "demo_source_entities_entity_id_financial_entities_id_fk",
+          "tableFrom": "demo_source_entities",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "financial_entities": {
+      "name": "financial_entities",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "entity_deletions": {
+      "name": "entity_deletions",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "entity_deletions_entity_id_financial_entities_id_fk": {
+          "name": "entity_deletions_entity_id_financial_entities_id_fk",
+          "tableFrom": "entity_deletions",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "import_receipts": {
+      "name": "import_receipts",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "command_id": {
+          "name": "command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sha256": {
+          "name": "sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "import_receipts_entity_id_financial_entities_id_fk": {
+          "name": "import_receipts_entity_id_financial_entities_id_fk",
+          "tableFrom": "import_receipts",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "import_receipts_entity_id_sha256_source_artifacts_entity_id_sha256_fk": {
+          "name": "import_receipts_entity_id_sha256_source_artifacts_entity_id_sha256_fk",
+          "tableFrom": "import_receipts",
+          "tableTo": "source_artifacts",
+          "columnsFrom": [
+            "entity_id",
+            "sha256"
+          ],
+          "columnsTo": [
+            "entity_id",
+            "sha256"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "import_receipts_entity_id_command_id_pk": {
+          "columns": [
+            "entity_id",
+            "command_id"
+          ],
+          "name": "import_receipts_entity_id_command_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "entity_memberships": {
+      "name": "entity_memberships",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'owner'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "entity_memberships_entity_id_financial_entities_id_fk": {
+          "name": "entity_memberships_entity_id_financial_entities_id_fk",
+          "tableFrom": "entity_memberships",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "entity_memberships_entity_id_user_id_pk": {
+          "columns": [
+            "entity_id",
+            "user_id"
+          ],
+          "name": "entity_memberships_entity_id_user_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "membership_role": {
+          "name": "membership_role",
+          "value": "\"entity_memberships\".\"role\" = 'owner'"
+        }
+      }
+    },
+    "source_artifacts": {
+      "name": "source_artifacts",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sha256": {
+          "name": "sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "byte_length": {
+          "name": "byte_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "storage_state": {
+          "name": "storage_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'metadata_only'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_artifacts_entity_id_financial_entities_id_fk": {
+          "name": "source_artifacts_entity_id_financial_entities_id_fk",
+          "tableFrom": "source_artifacts",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_artifacts_entity_id_sha256_pk": {
+          "columns": [
+            "entity_id",
+            "sha256"
+          ],
+          "name": "source_artifacts_entity_id_sha256_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "source_hash": {
+          "name": "source_hash",
+          "value": "length(\"source_artifacts\".\"sha256\") = 64 AND \"source_artifacts\".\"sha256\" NOT GLOB '*[^0-9a-f]*'"
+        },
+        "source_size": {
+          "name": "source_size",
+          "value": "\"source_artifacts\".\"byte_length\" BETWEEN 1 AND 131072"
+        },
+        "source_storage": {
+          "name": "source_storage",
+          "value": "\"source_artifacts\".\"storage_state\" = 'metadata_only'"
+        }
+      }
+    },
+    "source_objects": {
+      "name": "source_objects",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sha256": {
+          "name": "sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "object_key": {
+          "name": "object_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "media_type": {
+          "name": "media_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'application/xml'"
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'stored'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_objects_entity_id_sha256_source_artifacts_entity_id_sha256_fk": {
+          "name": "source_objects_entity_id_sha256_source_artifacts_entity_id_sha256_fk",
+          "tableFrom": "source_objects",
+          "tableTo": "source_artifacts",
+          "columnsFrom": [
+            "entity_id",
+            "sha256"
+          ],
+          "columnsTo": [
+            "entity_id",
+            "sha256"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_objects_entity_id_sha256_pk": {
+          "columns": [
+            "entity_id",
+            "sha256"
+          ],
+          "name": "source_objects_entity_id_sha256_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "object_key": {
+          "name": "object_key",
+          "value": "\"source_objects\".\"object_key\" = 'entities/' || \"source_objects\".\"entity_id\" || '/sources/' || \"source_objects\".\"sha256\""
+        },
+        "object_media": {
+          "name": "object_media",
+          "value": "\"source_objects\".\"media_type\" = 'application/xml'"
+        },
+        "object_state": {
+          "name": "object_state",
+          "value": "\"source_objects\".\"state\" IN ('stored', 'deleting')"
+        }
+      }
+    },
+    "source_upload_attempts": {
+      "name": "source_upload_attempts",
+      "columns": {
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "command_id": {
+          "name": "command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sha256": {
+          "name": "sha256",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "byte_length": {
+          "name": "byte_length",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "object_key": {
+          "name": "object_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_upload_attempts_entity_id_financial_entities_id_fk": {
+          "name": "source_upload_attempts_entity_id_financial_entities_id_fk",
+          "tableFrom": "source_upload_attempts",
+          "tableTo": "financial_entities",
+          "columnsFrom": [
+            "entity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_upload_attempts_entity_id_command_id_pk": {
+          "columns": [
+            "entity_id",
+            "command_id"
+          ],
+          "name": "source_upload_attempts_entity_id_command_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "upload_hash": {
+          "name": "upload_hash",
+          "value": "length(\"source_upload_attempts\".\"sha256\") = 64 AND \"source_upload_attempts\".\"sha256\" NOT GLOB '*[^0-9a-f]*'"
+        },
+        "upload_size": {
+          "name": "upload_size",
+          "value": "\"source_upload_attempts\".\"byte_length\" BETWEEN 1 AND 131072"
+        },
+        "upload_key": {
+          "name": "upload_key",
+          "value": "\"source_upload_attempts\".\"object_key\" = 'entities/' || \"source_upload_attempts\".\"entity_id\" || '/sources/' || \"source_upload_attempts\".\"sha256\""
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

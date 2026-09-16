@@ -1,6 +1,6 @@
 # Exportación completa de una entidad
 
-Fecha: 2026-09-14. Implementación preparatoria de servidor con datos sintéticos; no hay ruta HTTP ni descarga habilitada.
+Fecha: 2026-09-15. Implementación local con datos sintéticos; publicación remota pendiente.
 
 ## Salida
 
@@ -24,8 +24,24 @@ El manifiesto usa `format: "wedge-full-export"` y `formatVersion: 1`. Incluye la
 - Una fuente histórica sin original, una carga pendiente, un borrado, una revocación o bytes dañados producen un error de dominio. No se declara completa una salida parcial.
 - No se añadió una biblioteca de compresión ni una copia temporal en la nube.
 
-## Regla para el futuro adaptador de descarga
+## Descarga autenticada de la demo
 
-El consumidor debe escribir en una ubicación temporal y hacer visible el resultado sólo después de agotar el iterador sin error. La futura ruta debe usar autenticación del servidor, `Cache-Control: no-store`, disposición de archivo adjunto y un nombre neutro. Debe explicar que la copia contiene información fiscal sensible y que el usuario será responsable de guardarla o eliminarla de su dispositivo.
+`POST /api/export` exige la identidad del despachador Sites, origen de la misma aplicación y la versión/revisión vigente del registro. La interfaz prepara `wedge-copia-completa.zip` con:
 
-El empaquetado descargable y su prueba en Sites siguen pendientes. El registro de borrados y su reconciliador ya están probados localmente, pero faltan lock/lifecycle y simulacro remoto. La carga de documentos reales permanece cerrada hasta validar también una copia completa controlada por el fundador.
+```text
+demo-progress.json
+private-entity/manifest.json
+private-entity/sources/{sha256}.xml
+```
+
+Al procesar un ejemplo del catálogo cerrado, el Worker conserva ese XML sintético en R2 mediante el protocolo reintentable D1–R2–D1. La ruta sincroniza registros anteriores y después transmite un ZIP sin compresión. El servidor mantiene en memoria sólo un archivo de hasta 128 KiB y el directorio del ZIP; el cierre central se escribe al final. Si una lectura, autorización o hash falla, la descarga queda truncada y no constituye un ZIP completo.
+
+No se aceptan archivos enviados por el navegador. Los nombres del ZIP son constantes o hashes; no incluyen correo, RFC, nombre de archivo ni clave interna de R2. La respuesta usa `private, no-store`, tipo `application/zip`, nombre neutro y protección contra interpretación de contenido.
+
+## Responsabilidad de la copia
+
+El navegador hace visible el resultado sólo después de consumir la respuesta completa. La interfaz avisa que la copia debe guardarse como información privada. Una descarga queda en el dispositivo del usuario y deja de estar bajo el control de Wedge.
+
+La interfaz actual reúne el ZIP completo en memoria antes de iniciar la descarga. Esto es acotado para los seis ejemplos pequeños del catálogo cerrado; debe sustituirse por una descarga nativa o escrita a disco antes de admitir lotes o archivos reales.
+
+La prueba remota en Sites sigue pendiente. El registro de borrados y su reconciliador están probados localmente, pero faltan lock/lifecycle y simulacro remoto. La carga de documentos reales permanece cerrada hasta validar una copia completa controlada por el fundador.
