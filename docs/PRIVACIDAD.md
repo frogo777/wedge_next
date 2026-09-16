@@ -11,6 +11,7 @@ Fecha: 2026-09-06. Documento operativo interno; no es el aviso de privacidad com
 | Resultados de XML sintéticos, metadatos, huella y fecha | Revisar ejemplos y copias | D1 dentro de demo_progress | Se borran junto con la fila |
 | Confirmaciones de cobro sintéticas: folio, huella, importe, mes y fecha de confirmación | Resumen mensual | D1 dentro de demo_progress | Se borran junto con la fila |
 | Historial de versiones: selección/exclusión, folio, huellas y fecha | Trazar elecciones en la demo | D1, columna decisions | Se borra junto con la fila |
+| XML originales del catálogo sintético procesado | Probar copia y borrado completos | R2 privado; D1 conserva hash, propiedad y recibo | R2 activo se borra antes de la entidad D1 |
 | Versión, revisión aleatoria y fecha | Evitar conflictos | D1 | Se borra junto con la fila |
 | Nombre/correo desde ChatGPT | Mostrar la cuenta | Solicitud/respuesta y DOM | No se persiste en D1 |
 | Movimientos e impuestos ficticios | Ilustrar el recorrido | Código público | No pertenecen a un contribuyente |
@@ -20,19 +21,19 @@ No existe carga de RFC, CFDI, e.firma, documentos o datos bancarios aportados po
 
 Los importes del simulador ISR se procesan en memoria del navegador y no se envían a la API ni se guardan en D1. El TXT que descargue el usuario queda en su dispositivo; no forma parte de la exportación o eliminación del registro de cuenta.
 
-## Núcleo privado preparado, todavía inactivo
+## Núcleo privado activo sólo para el catálogo sintético
 
 El fundador decidió que los originales futuros también se conserven en la nube privada de Wedge y aprobó la política de retención del piloto. [ADR 0002](decisions/0002-private-source-storage.md) prepara D1 para propiedad/auditoría y R2 para bytes: claves sin RFC o nombre de archivo, acceso sólo desde servidor, verificación SHA-256 al leer y borrado activo R2 antes de D1. El máximo preparatorio es 128 KiB por XML y 1,000 fuentes distintas por entidad.
 
-Este núcleo no tiene ruta HTTP y sólo se prueba con bytes sintéticos. Sus migraciones aditivas están publicadas en el Site privado, con las tablas del dominio vacías; el repositorio inactivo no forma parte del bundle runtime. Por tanto, el inventario de la demo de esta página no cambia y Wedge todavía no acepta documentos fiscales reales. La [exportación completa preparatoria](EXPORTACION.md) entrega manifiesto y originales verificados sin revelar claves internas; aún falta una descarga autenticada y su prueba en Sites.
+La demo conecta el núcleo al catálogo cerrado incluido en el servidor. Procesar uno de esos ejemplos conserva sus bytes sintéticos en R2 y la [exportación completa](EXPORTACION.md) entrega un ZIP autenticado con progreso, manifiesto y originales verificados, sin revelar claves internas. El borrado de Privacidad alcanza la fila activa, la entidad y esos objetos. El ciclo se ejercitó desde la sesión real del fundador y terminó con las filas activas en cero. No existe carga de archivos externos y Wedge todavía no acepta documentos fiscales reales.
 
 ## Controles disponibles
 
-La sección Privacidad permite descargar el registro actual de la cuenta autenticada como JSON y eliminarlo, con confirmación, de la base activa. La exportación no pretende incluir datos internos de ChatGPT o Sites. Consultar la API con GET no crea una fila; procesar un XML de ejemplo sí puede crearla. Volver a realizar una acción del recorrido puede crear una fila nueva.
+La sección Privacidad permite descargar un ZIP del registro actual y los XML sintéticos procesados, y eliminarlos con confirmación de D1/R2 activos. La exportación no pretende incluir datos internos de ChatGPT o Sites. Consultar la API con GET no crea una fila; procesar un XML de ejemplo sí puede crear el registro y su entidad privada. Volver a realizar una acción del recorrido puede crear datos nuevos.
 
 La eliminación está condicionada a la versión y revisión leídas por el usuario. Cada escritura genera una revisión aleatoria: una pestaña que conserva un registro eliminado no puede modificar su reemplazo aunque ambos tengan el mismo número de versión. Una pestaña que nunca tuvo registro puede iniciar un nuevo recorrido; la eliminación no revoca sesiones ni prohíbe crear nuevos registros.
 
-La eliminación no alcanza copias históricas del proveedor, registros de infraestructura, la cuenta de ChatGPT ni descargas locales. No se ha verificado la duración de retención ni la capacidad de purga de esas copias. Tampoco hay eliminación automática por antigüedad en esta versión. El núcleo preparatorio coordina el borrado de D1 y R2 activos y conserva 45 días un tombstone de cero bytes con UUID hasheado para impedir que un restore reactive la entidad. No cambia las demás limitaciones ni permite prometer borrado universal o inmediato de todos los sistemas.
+La eliminación no alcanza copias históricas del proveedor, registros de infraestructura, la cuenta de ChatGPT ni descargas locales. No se ha verificado la duración de retención ni la capacidad de purga de esas copias. Tampoco hay eliminación automática por antigüedad en esta versión. El núcleo coordina el borrado de D1 y R2 activos y escribe un tombstone de cero bytes con UUID hasheado para impedir que un restore reactive la entidad. [ADR 0004](decisions/0004-founder-controlled-deletion-registry.md) prepara un R2 del fundador para retenerlo 45 días con lock/lifecycle; el código está probado pero el recurso no está activado. Esto no permite prometer borrado universal o inmediato de todos los sistemas.
 
 ## Requisitos pendientes antes de atender clientes
 

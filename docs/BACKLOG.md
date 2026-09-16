@@ -40,7 +40,7 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-003 — entidad fiscal, procedencia y auditoría
 
-**Estado: núcleo preparado, activación pendiente.** [ADR 0001](decisions/0001-entity-provenance.md) y [ADR 0002](decisions/0002-private-source-storage.md), ocho tablas aditivas y repositorio con pruebas D1/R2 sintéticas. Se modela una recepción por archivo/comando; un lote de múltiples archivos se coordinará en WDG-004. No se persiste RFC. Los originales futuros se separan en R2 privado; la retención del piloto está aprobada y faltan rutas autenticadas, restauración y despliegue mediante Sites.
+**Estado: activado sólo para ejemplos sintéticos.** [ADR 0001](decisions/0001-entity-provenance.md) y [ADR 0002](decisions/0002-private-source-storage.md), tablas aditivas y repositorio D1/R2. Una tabla puente enlaza la cuenta de demo con una entidad y la ruta autenticada exporta progreso, manifiesto y originales del catálogo cerrado. No se persiste RFC ni se aceptan archivos externos. Siguen pendientes restauración remota y el flujo de ingesta real.
 
 - **Meta / valor:** aislar cada contribuyente y explicar cada cambio.
 - **Incluye:** ADR/invariantes, migraciones aditivas para entity/membership/import/artifact/audit; repositorios transaccionales.
@@ -52,7 +52,7 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-004 — importación manual segura de CFDI
 
-**Avance preparatorio WDG-004A/B:** corregida la aceptación de caracteres XML prohibidos y la normalización de saltos XML 1.1; cinco pruebas adversariales nuevas. El fundador eligió conservar originales también en la nube privada y aprobó la retención del piloto. El binding R2 y el núcleo D1–R2 preparan carga, lectura íntegra, reintentos, cuota, exportación y borrado conjunto; siguen pendientes restauración, rutas y despliegue.
+**Avance WDG-004A/B + WDG-009D:** corregida la aceptación de caracteres XML prohibidos y la normalización de saltos XML 1.1; cinco pruebas adversariales nuevas. El fundador eligió conservar originales también en la nube privada y aprobó la retención del piloto. El catálogo sintético ya ejercita carga, lectura íntegra, reintentos, exportación y borrado conjunto mediante el binding R2. Siguen pendientes archivos externos, lotes, controles de ingesta y recuperación remota.
 
 - **Meta / valor:** reemplazar el catálogo cerrado por un flujo útil sin conectar SAT.
 - **Incluye:** lote, límites, cuarentena, hash, parsing CFDI 4.0, resultados parciales y archivos sintéticos/adversariales.
@@ -104,7 +104,7 @@ Ordenado por riesgo y capacidad de aprender. Cada tarea debe terminar con comand
 
 ## WDG-009 — privacidad, recuperación y piloto fundador
 
-**Avance preparatorio WDG-009A/B/C:** política del piloto aprobada; auditoría D1/R2, exportación incremental, tombstones y reconciliación offline probados localmente. No filtra claves R2 y aborta ante fuentes incompletas, alteración o revocación. [ADR 0003](decisions/0003-restore-safe-deletion-registry.md) fija 45 días para el identificador mínimo. Pendientes lock/lifecycle remoto, descarga autenticada y restore sintético.
+**Avance WDG-009A/B/C/D/E:** política del piloto aprobada; auditoría D1/R2, ZIP autenticado, borrado integral, tombstones y reconciliación offline probados con el catálogo sintético. El ZIP y su migración están publicados, y el ciclo guardado–exportación–borrado pasó desde la sesión real del fundador. No filtra claves R2 y aborta ante fuentes incompletas, alteración o revocación. [ADR 0003](decisions/0003-restore-safe-deletion-registry.md) fija 45 días y [ADR 0004](decisions/0004-founder-controlled-deletion-registry.md) prepara un R2 propio sólo para el identificador mínimo. Pendientes activar R2, aplicar lock/lifecycle y ejecutar el restore sintético remoto.
 
 - **Meta / valor:** operar un mes de forma segura y medir si Wedge ahorra trabajo.
 - **Incluye:** retención, exportación/borrado integral, backup/restore sintético, incidentes, QA móvil y tres cierres observados.

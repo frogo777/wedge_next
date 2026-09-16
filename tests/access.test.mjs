@@ -26,7 +26,9 @@ function request(user='A',event=null,version=0,extra={}){
  if(!event)return new Request(origin+'/api/progress'+(extra.query||''),{headers});
  return new Request(origin+'/api/progress',{method:'POST',headers:{origin,'Content-Type':'application/json',...headers},body:extra.body||JSON.stringify({event,version,revision:extra.revision??null})});
 }
-test('anónimo recibe 401 antes de acceder a almacenamiento',async()=>{const r=await handleProgress(request(''),null);assert.equal(r.status,401);assert.equal(r.headers.get('cache-control'),'private, no-store');});
+test('identidad ausente o inválida recibe 401 antes de acceder a almacenamiento',async()=>{
+ for(const user of ['', '   ', 'x'.repeat(257)]){const r=await handleProgress(request(user),null);assert.equal(r.status,401);assert.equal(r.headers.get('cache-control'),'private, no-store');}
+});
 test('A y B tienen progreso independiente; leer y reiniciar B no modifica A',async()=>{
  const {db,sqlite}=fixture();try{
  assert.equal((await handleProgress(request('A',{type:'RESOLVE',id:'cobro'}),db)).status,200);

@@ -4,6 +4,8 @@ import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Miniflare } from 'miniflare';
+import { samples } from '../../packages/documents/demo-samples.mjs';
+import { storeDemoSources } from '../../packages/domain/demo-export.ts';
 
 // Synthetic identities model Sites dispatch. This does not test ChatGPT sign-in.
 // No production URL, database, credentials or browser is used.
@@ -16,6 +18,7 @@ function createRuntime() {
     modulesRules: [{ type: 'ESModule', include: ['**/*.js'], fallthrough: true }],
     compatibilityDate: '2026-05-15', compatibilityFlags: ['nodejs_compat'],
     d1Databases: { DB: 'wedge-isolated-integration' }, d1Persist: directory,
+    r2Buckets: ['BUCKET'], r2Persist: directory,
     assets: { directory: resolve('dist/client'), routerConfig: { has_user_worker: true } },
   });
 }
@@ -112,4 +115,66 @@ test('Worker: protege origen y rechaza archivos enviados fuera del catálogo', {
   options.body = JSON.stringify({ event: { type: 'ADD_DOCUMENT', id: 'service', xml: '<external/>' }, version: 0, revision: null });
   assert.equal((await request('/api/progress', 'forged', options)).status, 400);
   assert.equal((await state('forged')).version, 0);
+});
+
+test('Worker: exporta los originales sintéticos en ZIP y el borrado alcanza D1/R2', { timeout: 20000 }, async () => {
+  const user = 'complete-export';
+  const db = await runtime.getD1Database('DB');
+  const bucket = await runtime.getR2Bucket('BUCKET');
+  let current = await state(user);
+  await storeDemoSources(db, bucket, { userId: user }, [{ id: 'service', xml: samples.service }]);
+  let response = await request('/api/export', user, {
+    method: 'POST', headers: { origin, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ version: current.version, revision: current.revision }),
+  });
+  assert.equal(response.status, 200);
+  assert.match(new TextDecoder().decode(await response.arrayBuffer()), /SERVICIO FICTICIO SIN VALIDEZ FISCAL/);
+
+  response = await write(user, current, { type: 'ADD_DOCUMENT', id: 'service' });
+  assert.equal(response.status, 200);
+  current = (await response.json()).state;
+  const link = await db.prepare('SELECT entity_id FROM demo_source_entities WHERE user_id = ?').bind(user).first();
+  assert.ok(link?.entity_id);
+  assert.equal((await bucket.list({ prefix: `entities/${link.entity_id}/sources/` })).objects.length, 1);
+
+  const exportRequest = () => request('/api/export', user, {
+    method: 'POST', headers: { origin, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ version: current.version, revision: current.revision }),
+  });
+  assert.equal((await request('/api/export', null, {
+    method: 'POST', headers: { origin, 'Content-Type': 'application/json' }, body: '{}',
+  })).status, 401);
+  assert.equal((await request('/api/export', user, {
+    method: 'POST', headers: { origin: 'https://other.test', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ version: current.version, revision: current.revision }),
+  })).status, 403);
+
+  response = await exportRequest();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'application/zip');
+  assert.equal(response.headers.get('cache-control'), 'private, no-store');
+  assert.match(response.headers.get('content-disposition'), /wedge-copia-completa\.zip/);
+  const archive = new Uint8Array(await response.arrayBuffer());
+  assert.equal(new DataView(archive.buffer).getUint32(archive.byteLength - 22, true), 0x06054b50);
+  const archiveText = new TextDecoder().decode(archive);
+  assert.match(archiveText, /demo-progress\.json/);
+  assert.match(archiveText, /private-entity\/manifest\.json/);
+  assert.match(archiveText, /SERVICIO FICTICIO SIN VALIDEZ FISCAL/);
+
+  assert.equal((await db.prepare('SELECT count(*) AS n FROM source_objects WHERE entity_id = ?').bind(link.entity_id).first()).n, 1);
+  assert.equal((await bucket.list({ prefix: `entities/${link.entity_id}/sources/` })).objects.length, 1);
+
+  response = await exportRequest();
+  assert.equal(response.status, 200);
+  await response.arrayBuffer();
+  assert.equal((await db.prepare('SELECT count(*) AS n FROM source_objects WHERE entity_id = ?').bind(link.entity_id).first()).n, 1);
+
+  response = await write(user, current, { type: 'ERASE' });
+  assert.equal(response.status, 200);
+  assert.equal(await db.prepare('SELECT entity_id FROM demo_source_entities WHERE user_id = ?').bind(user).first(), null);
+  assert.equal(await db.prepare('SELECT id FROM financial_entities WHERE id = ?').bind(link.entity_id).first(), null);
+  assert.equal((await bucket.list({ prefix: `entities/${link.entity_id}/` })).objects.length, 0);
+  const tombstoneHash = Buffer.from(await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(`wedge:deletion:v1:${link.entity_id}`))).toString('hex');
+  assert.ok(await bucket.get(`deletions/v1/${tombstoneHash}`));
 });

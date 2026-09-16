@@ -21,10 +21,10 @@ Demo privada en Sites, Worker Vinext, D1, navegador y XML sintéticos. También 
 | T7 | XSS por metadatos de CFDI o nombres | Alta | Media | Secuestro de sesión/acciones | Presentación escapa valores; CSP | Prohibir `innerHTML` con datos, sanitización central y pruebas con payloads |
 | T8 | Corrupción parcial de fila JSON o carrera | Alta | Media | Historia y cálculos incorrectos | Versión/revisión optimista | Tablas normalizadas, transacciones, restricciones y eventos idempotentes |
 | T9 | Regla fiscal obsoleta o mal aplicada | Alta | Alta | Impuesto estimado incorrecto | Ruleset visible y cálculo puro | Vigencia/versiones, fuentes, casos, revisión profesional y comparación SAT |
-| T10 | Borrado/backup/restore incompleto | Alta | Media | Pérdida o retención indebida | Política aprobada; tombstone previo, borrado completo y reconciliador offline probados localmente | Lock/lifecycle remoto, descarga y restore aislado |
+| T10 | Borrado/backup/restore incompleto | Alta | Media | Pérdida o retención indebida | Política aprobada; descarga/borrado sintéticos probados; ruta S3 separada falla cerrada | Activar R2 propio, aplicar lock/lifecycle y ejecutar restore aislado |
 | T11 | API abusada sin cuotas | Media | Media | Indisponibilidad/costo | Cuerpo pequeño y misma procedencia | Límites por usuario/IP, métricas sin PII y respuestas uniformes |
 | T12 | Logs/errores filtran datos fiscales | Alta | Media futura | Exposición persistente | Mensajes genéricos; no registra cabeceras | Allowlist de campos, redacción, retención corta y pruebas de fallos |
-| T13 | Exportación sensible queda en equipo compartido | Media | Media | Exposición local | Núcleo sin URL pública, caché ni claves R2; aviso parcial en la demo | Nombre neutro, confirmación y guía clara en la futura descarga |
+| T13 | Exportación sensible queda en equipo compartido | Media | Media | Exposición local | Ruta autenticada, respuesta `no-store`, ZIP con nombre neutro y aviso de copia privada; no filtra claves R2 | Validar el flujo en móvil y añadir guía del piloto antes de documentos reales |
 | T14 | IA sufre prompt injection o produce asientos sin evidencia | Alta | Media futura | Manipulación del libro/explicación | IA ausente | Tratar documentos como datos, herramientas allowlist, salida estructurada y aprobación |
 | T15 | Conector externo altera dinero | Crítica | Baja futura | Pérdida financiera | No hay conectores | Integraciones sólo lectura en primeras etapas; permisos mínimos y kill switch |
 

@@ -4,6 +4,20 @@ Fecha canónica: 2026-09-15. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-15
 
+**Incremento WDG-009E:** [ADR 0004](decisions/0004-founder-controlled-deletion-registry.md) evita migrar toda la aplicación: Sites conserva identidad, D1 y originales; sólo el tombstone se dirige por S3 firmado a un R2 administrado por el fundador. El modo remoto exige configuración completa y falla cerrado. La credencial de aplicación queda separada de la administración de lock/lifecycle. El R2 de la cuenta sigue sin activarse, por lo que aún no existe el recurso y el Site conserva el registro actual hasta configurar el modo `s3`.
+
+Verificación local WDG-009E: `npm run verify` pasa con typecheck, 70 pruebas unitarias, build y 37 de integración (107 en total). Los casos nuevos cubren firma SigV4, alta condicional, reintento, metadatos alterados, configuración parcial y separación entre el registro y el bucket de originales. Lint pasa con el único aviso histórico de la plantilla. `npm audit --omit=dev` reporta cero vulnerabilidades. La cuenta Cloudflare volvió a responder `10042` al listar R2 y cero Workers; el dashboard requiere inicio de sesión y checkout para activar la suscripción.
+
+Verificación remota preparatoria WDG-009E: el commit `806be4c` se guardó y publicó como versión privada 13 de [Wedge en Sites](https://wedge-next.hola192112.chatgpt.site). Una recarga autenticada devolvió el resumen vacío esperado y no hubo eventos de error del Worker. No se añadieron variables S3, recursos Cloudflare ni datos reales; el comportamiento remoto de lock/lifecycle sigue pendiente de la activación de R2.
+
+El head `45c113f` pasó [CI Windows/Ubuntu](https://github.com/frogo777/wedge_next/actions/runs/35065710803): instalación bloqueada, tipos, lint, auditoría completa, 70 pruebas unitarias, build y 37 pruebas de integración. El aviso de lint de la plantilla permanece documentado.
+
+**Incremento WDG-009D:** la demo enlaza cada cuenta con una entidad privada al procesar el catálogo cerrado, conserva esos XML sintéticos en R2 y ofrece una descarga ZIP autenticada con progreso, manifiesto y originales verificados. El ZIP se transmite sin acumular la exportación completa en memoria y sólo escribe su directorio final al concluir; un fallo deja una descarga inválida. El borrado de Privacidad alcanza ahora progreso, entidad y objetos R2 activos antes de confirmar. No existe carga de archivos propios.
+
+Verificación local WDG-009D: `npm run verify` pasa con typecheck, 67 pruebas unitarias, build y 36 de integración (103 en total). Los casos nuevos cubren ZIP y rutas seguras, entidad única bajo concurrencia, reintento, autenticación/origen, almacenamiento R2, descarga repetida y borrado D1/R2 con tombstone. Lint pasa y la auditoría de producción reporta cero vulnerabilidades. La migración 0007 es aditiva y crea sólo el enlace uno-a-uno de la demo.
+
+Verificación remota WDG-009D: el commit `d70c385` pasó [CI Windows/Ubuntu](https://github.com/frogo777/wedge_next/actions/runs/35038282728) y se publicó como versión privada 12 de [Wedge en Sites](https://wedge-next.hola192112.chatgpt.site). Sites aplicó la migración y D1 expone las diez tablas esperadas. En una sesión real del fundador se procesó «Servicio de agosto»: el enlace, entidad, objeto y recibo pasaron de cero a una fila; el navegador consumió `/api/export` completo y la interfaz confirmó la copia. Después, el borrado confirmado dejó en cero `demo_progress`, enlace, entidad, objeto, recibo y estado de borrado; la interfaz volvió al resumen vacío. El repositorio sólo elimina la entidad D1 después de registrar el tombstone y completar el borrado R2. No hubo eventos de error del Worker durante el ejercicio. La prueba no usó archivos fiscales reales.
+
 **Incremento WDG-009C ([PR #7](https://github.com/frogo777/wedge_next/pull/7)):** el fundador aprobó [ADR 0003](decisions/0003-restore-safe-deletion-registry.md). El borrado marca D1, registra en R2 un tombstone de cero bytes y UUID hasheado, y después elimina objetos y entidad. Fallos conservan `deleting`; reintentos validan el tombstone existente. Un reconciliador offline paginado detecta entidades revividas y elimina también objetos huérfanos. El lock/lifecycle de 45 días sigue limitado al prefijo `deletions/v1/`, pero no pudo configurarse en nube porque el R2 de Sites no pertenece a la cuenta Cloudflare conectada; el [runbook](runbooks/R2-DELETION-POLICY.md) fija el cambio, la verificación y el desbloqueo requerido.
 
 Verificación local WDG-009C: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 34 de integración (99 en total). Veintiocho pruebas corresponden al dominio D1/R2 y seis al Worker. Los casos nuevos cubren fallo del registro, reintento, minimización, restore D1 sintético, paginación acotada y tombstone alterado.
@@ -16,13 +30,13 @@ Verificación local WDG-009B: `npm run verify` pasa con typecheck, 65 pruebas un
 
 **Incremento WDG-009A:** auditoría de consistencia D1/R2 de sólo lectura y [recomendación de retención/recuperación](research/RETENTION-RECOVERY-2026-09-14.md). Autoriza antes de listar y antes de responder, pagina de forma acotada y permite verificar el SHA-256 real. Distingue sano, trabajo pendiente, faltante, alterado, huérfano, conflicto de seguimiento y cambio concurrente sin devolver bytes.
 
-El fundador aprobó conservar mientras la entidad esté activa y borrar D1/R2 activos cuando lo solicite, sin bucket lock ni segunda copia oculta. Antes de datos reales todavía faltan la ruta autenticada de descarga, un registro de borrados resistente a restores y un simulacro remoto aislado. D1 Time Travel y la durabilidad de R2 no se presentan como backup recuperable del original.
+El fundador aprobó conservar mientras la entidad esté activa y borrar D1/R2 activos cuando lo solicite, sin bucket lock ni segunda copia oculta. En ese corte todavía faltaban la ruta autenticada y el registro resistente a restores; ambos se añadieron en WDG-009C/D. El simulacro remoto aislado sigue pendiente. D1 Time Travel y la durabilidad de R2 no se presentan como backup recuperable del original.
 
 Verificación WDG-009A: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 26 de integración (91 en total). Veinte pruebas corresponden al dominio D1/R2 y seis al Worker.
 
 **Base WDG-004B:** el fundador eligió conservar los originales también en la nube privada de Wedge. [ADR 0002](decisions/0002-private-source-storage.md) prepara R2 para bytes y D1 para propiedad, intentos, estado y auditoría. Incluye hash verificado al leer, creación condicional, reintentos D1–R2–D1, límite de 128 KiB y 1,000 fuentes distintas por entidad, y borrado R2 antes de la cascada D1.
 
-El módulo sigue sin ruta HTTP, despliegue, documentos reales o política automática de retención. La migración 0006 es sólo aditiva: una reconstrucción generada durante el desarrollo se descartó antes de guardarla porque las cascadas de D1 podían eliminar fuentes existentes. La prueba de migración conserva expresamente una fuente `metadata_only` previa.
+En ese corte el módulo seguía sin ruta HTTP, despliegue, documentos reales o política automática de retención. La migración 0006 es sólo aditiva: una reconstrucción generada durante el desarrollo se descartó antes de guardarla porque las cascadas de D1 podían eliminar fuentes existentes. La prueba de migración conserva expresamente una fuente `metadata_only` previa.
 
 Verificación local WDG-004B: `npm run verify` pasa con typecheck, 65 pruebas unitarias, build y 22 de integración (87 en total). `npm run db:generate` confirma que no quedan cambios de esquema. Lint: cero errores y el aviso histórico de la plantilla. Auditoría completa: cero avisos altos/críticos y cuatro moderados ya documentados de la cadena Drizzle. El helper de build del plugin Sites 0.1.70 no alcanza el build en Windows porque busca `node_modules/npm`; el comando portátil sí compila correctamente.
 
@@ -30,20 +44,20 @@ Verificación local WDG-004B: `npm run verify` pasa con typecheck, 65 pruebas un
 Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
 Procedencia por entidad      ✓ PR #2; núcleo D1 preparado
 Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
-Originales de archivos       △ D1/R2 y exportación probados; rutas pendientes
+Originales de archivos       ✓ ciclo sintético remoto ejecutado
 Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
 Retención del piloto         ✓ política aprobada; revisión jurídica antes de datos reales
-Registro contra restores     △ esquema remoto vacío; política R2 bloqueada por Sites
+Registro contra restores     △ ruta externa probada; R2 requiere activación y reglas
 Flujo financiero real        ○ todavía no habilitado
 ```
 
 [PR #1](https://github.com/frogo777/wedge_next/pull/1): auditoría, dependencias y comandos portátiles. [CI remoto](https://github.com/frogo777/wedge_next/actions/runs/34929443677) pasó en Windows y Ubuntu para `e8a028b`: tipos, lint, auditoría completa, 60 pruebas unitarias, build y 6 pruebas de Worker. Cero avisos altos/críticos; cuatro moderados de la cadena Drizzle documentados.
 
-[PR #2](https://github.com/frogo777/wedge_next/pull/2) prepara entidad/procedencia; [PR #3](https://github.com/frogo777/wedge_next/pull/3) endurece XML; [PR #4](https://github.com/frogo777/wedge_next/pull/4) prepara los originales privados; [PR #5](https://github.com/frogo777/wedge_next/pull/5) añade auditoría D1/R2 y registra la política de retención aprobada; [PR #6](https://github.com/frogo777/wedge_next/pull/6) añade la exportación completa; [PR #7](https://github.com/frogo777/wedge_next/pull/7) evita que un restore reactive entidades borradas. Los seis permanecen como borradores apilados antes de integrar; el estado completo de #7 ya se publicó en el Site privado sin abrir rutas del dominio.
+[PR #2](https://github.com/frogo777/wedge_next/pull/2) prepara entidad/procedencia; [PR #3](https://github.com/frogo777/wedge_next/pull/3) endurece XML; [PR #4](https://github.com/frogo777/wedge_next/pull/4) prepara los originales privados; [PR #5](https://github.com/frogo777/wedge_next/pull/5) añade auditoría D1/R2 y registra la política de retención aprobada; [PR #6](https://github.com/frogo777/wedge_next/pull/6) añade la exportación completa; [PR #7](https://github.com/frogo777/wedge_next/pull/7) evita que un restore reactive entidades borradas; [PR #8](https://github.com/frogo777/wedge_next/pull/8) conecta el ciclo sintético a la demo. Los ocho permanecen como borradores apilados antes de integrar; el código de #8 ya se publicó en el Site privado.
 
 Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y WDG-009B cuatro de exportación completa. El manifiesto no filtra claves internas del bucket. Los originales sólo salen por la función de servidor, de uno en uno y con autorización posterior a la lectura de R2.
 
-**Siguiente:** obtener control administrativo del R2 de Sites o aprobar una migración a infraestructura Cloudflare propia; entonces configurar/probar lock, lifecycle y recuperación remota sintética. En paralelo puede añadirse la descarga autenticada y validarse una copia controlada por el fundador antes de abrir la ruta de carga. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** iniciar sesión en Cloudflare y activar R2. Después se crearán el bucket dedicado, lock/lifecycle, credencial acotada y secretos Sites; se desplegará y probará el borrado sintético. Luego debe ejecutarse un restore sintético aislado. Los archivos externos permanecen cerrados hasta completar esas pruebas y los controles de ingesta. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 

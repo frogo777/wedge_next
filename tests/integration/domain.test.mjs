@@ -7,6 +7,7 @@ import { createEntity, recordSource, readSource, exportEntity, exportEntityFiles
   hasEntityDeletionTombstone, reconcileRestoredEntityDeletion, reconcileRestoredEntityDeletionsPage,
   MAX_SOURCES_PER_ENTITY, DELETION_TOMBSTONE_PREFIX, DELETION_TOMBSTONE_RETENTION_DAYS
 } from '../../packages/domain/repository.ts';
+import { ensureDemoSourceEntity, storeDemoSources, eraseDemoSourceEntity } from '../../packages/domain/demo-export.ts';
 
 // Real D1 semantics in an isolated local runtime. No HTTP route or real tax data.
 const alice = { userId: 'synthetic-alice' }, bob = { userId: 'synthetic-bob' };
@@ -75,6 +76,26 @@ test('Dominio: conserva bytes originales privados y exporta procedencia sin filt
   assert.deepEqual(exported.pendingUploads, []);
   const original = await readSource(db, bucket, alice, entity.id, receipt.sha256);
   assert.deepEqual(original.bytes, bytes('abc'));
+});
+
+test('Dominio: el puente sintético crea una sola entidad, reintenta y borra D1/R2', async () => {
+  const identity = { userId: 'synthetic-demo-export' };
+  const entities = await Promise.all([
+    ensureDemoSourceEntity(db, identity),
+    ensureDemoSourceEntity(db, identity),
+  ]);
+  assert.equal(entities[0], entities[1]);
+  assert.equal((await db.prepare('SELECT count(*) AS n FROM demo_source_entities WHERE user_id = ?')
+    .bind(identity.userId).first()).n, 1);
+  const source = { id: 'service', xml: '<synthetic-export/>' };
+  assert.equal(await storeDemoSources(db, bucket, identity, [source]), entities[0]);
+  assert.equal(await storeDemoSources(db, bucket, identity, [source]), entities[0]);
+  assert.equal((await db.prepare('SELECT count(*) AS n FROM source_objects WHERE entity_id = ?')
+    .bind(entities[0]).first()).n, 1);
+  assert.equal(await eraseDemoSourceEntity(db, bucket, identity), true);
+  assert.equal(await eraseDemoSourceEntity(db, bucket, identity), false);
+  assert.equal((await bucket.list({ prefix: `entities/${entities[0]}/` })).objects.length, 0);
+  assert.equal(await db.prepare('SELECT id FROM financial_entities WHERE id = ?').bind(entities[0]).first(), null);
 });
 
 test('Dominio: exportación completa entrega manifiesto y originales verificados de forma incremental', async () => {
@@ -317,6 +338,20 @@ test('Dominio: tombstone mínimo no revela el UUID y sobrevive una restauración
   assert.deepEqual(await reconcileRestoredEntityDeletion(db, bucket, entity.id),
     { entityId: entity.id, status: 'absent', objectsRemoved: 1 });
   assert.equal(await bucket.head(restoredOrphan), null);
+});
+
+test('Dominio: el registro de borrados puede vivir fuera del bucket de originales', async () => {
+  const entity = await createEntity(db, alice);
+  await recordSource(db, bucket, alice, entity.id, 'external-registry', bytes('abc'));
+  const recorded = new Set();
+  const registry = {
+    has: async id => recorded.has(id),
+    ensure: async id => { recorded.add(id); },
+  };
+  await eraseEntity(db, bucket, alice, entity.id, registry);
+  assert.equal(recorded.has(entity.id), true);
+  assert.equal(await bucket.get(await tombstonePath(entity.id)), null);
+  assert.equal(await bucket.get(objectPath(entity.id, hashAbc)), null);
 });
 
 test('Dominio: un tombstone preexistente alterado impide confirmar el borrado', async () => {

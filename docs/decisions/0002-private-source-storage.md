@@ -1,10 +1,10 @@
 # ADR 0002 — Originales en almacenamiento privado de Wedge
 
-Fecha: 2026-09-14. Estado: aceptada por el fundador e implementada de forma preparatoria con datos sintéticos; sin ruta de carga, migración remota ni despliegue.
+Fecha: 2026-09-14. Estado: aceptada por el fundador. El núcleo, la descarga autenticada y su migración están publicados con datos sintéticos en la versión privada 12; el ciclo guardado–exportación–borrado pasó desde una sesión real.
 
 ## Decisión
 
-Los originales se conservarán también en la nube privada de Wedge. D1 guarda propiedad, procedencia, estados y auditoría; R2 guarda únicamente los bytes. El binding lógico `BUCKET` sólo se usa desde el Worker y esta etapa no publica URLs ni rutas de descarga.
+Los originales se conservarán también en la nube privada de Wedge. D1 guarda propiedad, procedencia, estados y auditoría; R2 guarda únicamente los bytes. El binding lógico `BUCKET` sólo se usa desde el Worker. La primera ruta sirve una descarga autenticada de los ejemplos sintéticos procesados y no acepta archivos del usuario.
 
 ```text
 identidad autenticada
@@ -43,11 +43,11 @@ No hay eliminación automática por antigüedad ni política aprobada para respa
 
 La política del piloto, aprobada por el fundador el 2026-09-14, y su evidencia están en [Retención y recuperación de originales](../research/RETENTION-RECOVERY-2026-09-14.md). No se configura bucket lock para los originales bajo `entities/`: impediría el borrado activo que este módulo promete y Wedge no tiene una base legal aprobada para retenerlos contra una solicitud. [ADR 0003](0003-restore-safe-deletion-registry.md) limita una excepción de 45 días al tombstone mínimo bajo `deletions/v1/`.
 
-La eliminación implementada cubre la base y los originales activos del módulo. Conserva por diseño el tombstone mínimo durante la ventana aprobada; no cubre descargas del usuario, registros de infraestructura ni respaldos del proveedor.
+La eliminación implementada cubre la base y los originales activos del módulo, incluida la entidad sintética enlazada a la demo. Conserva por diseño el tombstone mínimo; la ventana administrativa de 45 días todavía no está configurada en el R2 de Sites. No cubre descargas del usuario, registros de infraestructura ni respaldos del proveedor.
 
 ## Capacidad y costo
 
-R2 Standard publica un nivel mensual sin cargo de 10 GB-mes, un millón de operaciones clase A y diez millones clase B. Fuera de ese nivel, la tarifa publicada es USD 0.015 por GB-mes, USD 4.50 por millón de operaciones clase A y USD 0.36 por millón de clase B; la salida a Internet y los borrados se publican sin cargo. Son precios del proveedor, no una promesa de costo de Sites, y deben revisarse antes de desplegar. Esta rama no aprovisiona ni factura un recurso remoto.
+R2 Standard publica un nivel mensual sin cargo de 10 GB-mes, un millón de operaciones clase A y diez millones clase B. Fuera de ese nivel, la tarifa publicada es USD 0.015 por GB-mes, USD 4.50 por millón de operaciones clase A y USD 0.36 por millón de clase B; la salida a Internet y los borrados se publican sin cargo. Son precios del proveedor, no una promesa de costo de Sites. Este incremento reutiliza el binding del Site y no aprovisiona otro recurso.
 
 Fuentes oficiales consultadas el 2026-09-14: [precios de R2](https://developers.cloudflare.com/r2/pricing/) y [API de R2 para Workers](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/). La semántica transaccional y de claves foráneas usada por D1 se apoya en [D1 `batch()`](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch) y [claves foráneas de D1](https://developers.cloudflare.com/d1/sql-api/foreign-keys/).
 
