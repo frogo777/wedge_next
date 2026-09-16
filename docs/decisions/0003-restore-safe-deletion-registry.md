@@ -1,6 +1,6 @@
 # ADR 0003 — Registro de borrados resistente a restauraciones
 
-Fecha: 2026-09-14. Estado: **aprobada por el fundador e implementada localmente con datos sintéticos**. Las migraciones aditivas están publicadas; la política administrativa R2 permanece bloqueada por la frontera entre Sites y la cuenta Cloudflare conectada.
+Fecha: 2026-09-14. Estado: **aprobada por el fundador e implementada con datos sintéticos**. [ADR 0004](0004-founder-controlled-deletion-registry.md) cambia sólo la ubicación operativa del tombstone para obtener control administrativo sin migrar toda la aplicación.
 
 ## Problema
 
@@ -22,7 +22,8 @@ Fuentes oficiales consultadas el 2026-09-14: [D1 Time Travel](https://developers
 
 | Opción | Ventaja | Costo/riesgo | Evaluación |
 |---|---|---|---|
-| Tombstone mínimo en el R2 actual, bajo prefijo bloqueado 45 días | Independiente del restore D1; usa el binding existente; ningún original duplicado | Retiene un identificador pseudónimo temporal; requiere configurar lock/lifecycle | **Recomendada** |
+| Tombstone mínimo en R2 separado y controlado, bajo prefijo bloqueado 45 días | Independiente del restore D1; ningún original duplicado; reglas administrables | Añade acceso S3 firmado durante el borrado | **Seleccionada en ADR 0004** |
+| Tombstone mínimo en el R2 de Sites | Usa el binding existente | Sites no expone administración de lock/lifecycle | Descartada operativamente |
 | Segunda base D1 | Consultas sencillas | Nuevo binding/recurso fuera del manifiesto Sites actual; también puede restaurarse o alterarse | Complejidad sin mejor garantía |
 | Tombstone R2 indefinido | Cubre respaldos futuros desconocidos | Retención permanente sin necesidad demostrada | Descartada para el piloto |
 | Sin registro | Cero datos adicionales | Puede reactivar datos borrados | Inaceptable antes de restores |
@@ -53,4 +54,4 @@ Configurar el lock requiere acceso administrativo al bucket. La excepción ya fu
 
 El fundador aprobó: **conservar durante 45 días, en el R2 privado existente, un tombstone de cero bytes cuyo nombre sea la huella SHA-256 del UUID aleatorio de la entidad; aplicar lock y lifecycle sólo al prefijo `deletions/v1/`.**
 
-La implementación marca primero la entidad como `deleting`, escribe el tombstone con creación condicional y checksum, y sólo entonces elimina todos los objetos del prefijo de la entidad y D1. Un fallo conserva la entidad bloqueada y reintentable. La consulta de recuperación valida que el objeto tenga cero bytes, formato y cabeceras esperadas; el reconciliador offline elimina entidades restauradas y objetos huérfanos antes de reabrir escrituras. El coordinador recorre D1 por páginas acotadas y permite reintentos idempotentes. Estas funciones permanecen aisladas de HTTP. Falta comprobar lock/lifecycle y el proceso completo en un recurso remoto sintético cuando Sites exponga acceso administrativo al bucket o se apruebe una migración a infraestructura controlada por el fundador.
+La implementación marca primero la entidad como `deleting`, escribe el tombstone con creación condicional y sólo entonces elimina todos los objetos del prefijo de la entidad y D1. Un fallo conserva la entidad bloqueada y reintentable. La consulta de recuperación valida cero bytes, formato y cabeceras; el reconciliador offline elimina entidades restauradas y objetos huérfanos antes de reabrir escrituras. El coordinador recorre D1 por páginas acotadas y permite reintentos idempotentes. Estas funciones permanecen aisladas de HTTP. Falta activar el R2 del fundador, aplicar las reglas y ejecutar el proceso completo en un recurso remoto sintético.

@@ -4,6 +4,10 @@ Fecha canónica: 2026-09-15. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 ## Estado actual — 2026-09-15
 
+**Incremento WDG-009E:** [ADR 0004](decisions/0004-founder-controlled-deletion-registry.md) evita migrar toda la aplicación: Sites conserva identidad, D1 y originales; sólo el tombstone se dirige por S3 firmado a un R2 administrado por el fundador. El modo remoto exige configuración completa y falla cerrado. La credencial de aplicación queda separada de la administración de lock/lifecycle. El R2 de la cuenta sigue sin activarse, por lo que no se ha creado el recurso ni desplegado esta ruta.
+
+Verificación local WDG-009E: `npm run verify` pasa con typecheck, 70 pruebas unitarias, build y 37 de integración (107 en total). Los casos nuevos cubren firma SigV4, alta condicional, reintento, metadatos alterados, configuración parcial y separación entre el registro y el bucket de originales. Lint pasa con el único aviso histórico de la plantilla. `npm audit --omit=dev` reporta cero vulnerabilidades. La cuenta Cloudflare volvió a responder `10042` al listar R2 y cero Workers; el dashboard requiere inicio de sesión y checkout para activar la suscripción.
+
 **Incremento WDG-009D:** la demo enlaza cada cuenta con una entidad privada al procesar el catálogo cerrado, conserva esos XML sintéticos en R2 y ofrece una descarga ZIP autenticada con progreso, manifiesto y originales verificados. El ZIP se transmite sin acumular la exportación completa en memoria y sólo escribe su directorio final al concluir; un fallo deja una descarga inválida. El borrado de Privacidad alcanza ahora progreso, entidad y objetos R2 activos antes de confirmar. No existe carga de archivos propios.
 
 Verificación local WDG-009D: `npm run verify` pasa con typecheck, 67 pruebas unitarias, build y 36 de integración (103 en total). Los casos nuevos cubren ZIP y rutas seguras, entidad única bajo concurrencia, reintento, autenticación/origen, almacenamiento R2, descarga repetida y borrado D1/R2 con tombstone. Lint pasa y la auditoría de producción reporta cero vulnerabilidades. La migración 0007 es aditiva y crea sólo el enlace uno-a-uno de la demo.
@@ -39,7 +43,7 @@ Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
 Originales de archivos       ✓ ciclo sintético remoto ejecutado
 Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
 Retención del piloto         ✓ política aprobada; revisión jurídica antes de datos reales
-Registro contra restores     △ esquema remoto vacío; política R2 bloqueada por Sites
+Registro contra restores     △ ruta externa probada; R2 requiere activación y reglas
 Flujo financiero real        ○ todavía no habilitado
 ```
 
@@ -49,7 +53,7 @@ Flujo financiero real        ○ todavía no habilitado
 
 Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y WDG-009B cuatro de exportación completa. El manifiesto no filtra claves internas del bucket. Los originales sólo salen por la función de servidor, de uno en uno y con autorización posterior a la lectura de R2.
 
-**Siguiente:** obtener control administrativo del R2 de Sites o aprobar una migración a infraestructura Cloudflare propia para configurar/probar lock, lifecycle y recuperación remota. Después debe ejecutarse un restore sintético aislado. Los archivos externos permanecen cerrados hasta completar esas pruebas y los controles de ingesta. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** iniciar sesión en Cloudflare y activar R2. Después se crearán el bucket dedicado, lock/lifecycle, credencial acotada y secretos Sites; se desplegará y probará el borrado sintético. Luego debe ejecutarse un restore sintético aislado. Los archivos externos permanecen cerrados hasta completar esas pruebas y los controles de ingesta. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 

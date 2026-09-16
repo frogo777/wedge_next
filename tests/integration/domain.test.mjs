@@ -340,6 +340,20 @@ test('Dominio: tombstone mínimo no revela el UUID y sobrevive una restauración
   assert.equal(await bucket.head(restoredOrphan), null);
 });
 
+test('Dominio: el registro de borrados puede vivir fuera del bucket de originales', async () => {
+  const entity = await createEntity(db, alice);
+  await recordSource(db, bucket, alice, entity.id, 'external-registry', bytes('abc'));
+  const recorded = new Set();
+  const registry = {
+    has: async id => recorded.has(id),
+    ensure: async id => { recorded.add(id); },
+  };
+  await eraseEntity(db, bucket, alice, entity.id, registry);
+  assert.equal(recorded.has(entity.id), true);
+  assert.equal(await bucket.get(await tombstonePath(entity.id)), null);
+  assert.equal(await bucket.get(objectPath(entity.id, hashAbc)), null);
+});
+
 test('Dominio: un tombstone preexistente alterado impide confirmar el borrado', async () => {
   const entity = await createEntity(db, alice);
   const receipt = await recordSource(db, bucket, alice, entity.id, 'registry-corrupt', bytes('abc'));

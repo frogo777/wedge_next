@@ -1,4 +1,4 @@
-import { DomainError, eraseEntity, recordSource, type Identity } from './repository.ts';
+import { DomainError, eraseEntity, recordSource, type DeletionRegistry, type Identity } from './repository.ts';
 
 type Row = Record<string, string | number | null>;
 export type DemoSource = Readonly<{ id: string; xml: string }>;
@@ -80,11 +80,11 @@ export async function storeDemoSources(db: D1Database, bucket: R2Bucket,
 }
 
 export async function eraseDemoSourceEntity(db: D1Database, bucket: R2Bucket | undefined,
-  identity: Identity) {
+  identity: Identity, deletionRegistry?: DeletionRegistry) {
   const user = userId(identity);
   const row = await linkedEntity(db, user);
   if (typeof row?.entity_id !== 'string') return false;
   if (!bucket) throw new DomainError('storage_error');
-  await eraseEntity(db, bucket, identity, row.entity_id);
+  await eraseEntity(db, bucket, identity, row.entity_id, deletionRegistry);
   return true;
 }

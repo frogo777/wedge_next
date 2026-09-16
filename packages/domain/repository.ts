@@ -44,7 +44,13 @@ export const DELETION_TOMBSTONE_PREFIX = 'deletions/v1/';
 export const DELETION_TOMBSTONE_RETENTION_DAYS = 45;
 const EMPTY_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 
-async function deletionTombstoneKey(entity: string) {
+export type DeletionRegistry = Readonly<{
+  has(entityId: string): Promise<boolean>;
+  ensure(entityId: string): Promise<void>;
+}>;
+
+export async function deletionTombstoneKey(entityId: string) {
+  const entity = key(entityId);
   const value = new TextEncoder().encode(`wedge:deletion:v1:${entity}`);
   return `${DELETION_TOMBSTONE_PREFIX}${(await sha256(value)).hex}`;
 }
@@ -66,11 +72,6 @@ async function readDeletionTombstone(bucket: R2Bucket, entity: string) {
   }
 }
 
-// Recovery-only lookup. It deliberately has no user identity and must never be wired to HTTP.
-export async function hasEntityDeletionTombstone(bucket: R2Bucket, entityId: string) {
-  return readDeletionTombstone(bucket, key(entityId));
-}
-
 async function writeDeletionTombstone(bucket: R2Bucket, entity: string) {
   const objectKey = await deletionTombstoneKey(entity);
   try {
@@ -85,6 +86,18 @@ async function writeDeletionTombstone(bucket: R2Bucket, entity: string) {
     if (error instanceof DomainError) throw error;
     throw new DomainError('storage_error');
   }
+}
+
+export function createR2DeletionRegistry(bucket: R2Bucket): DeletionRegistry {
+  return {
+    has: entityId => readDeletionTombstone(bucket, key(entityId)),
+    ensure: entityId => writeDeletionTombstone(bucket, key(entityId)),
+  };
+}
+
+// Recovery-only lookup. It deliberately has no user identity and must never be wired to HTTP.
+export async function hasEntityDeletionTombstone(bucket: R2Bucket, entityId: string) {
+  return createR2DeletionRegistry(bucket).has(entityId);
 }
 
 async function listEntitySourceObjectKeys(bucket: R2Bucket, entity: string) {
@@ -358,7 +371,8 @@ export async function* exportEntityFiles(db: D1Database, bucket: R2Bucket, ident
   }
 }
 
-export async function eraseEntity(db: D1Database, bucket: R2Bucket, identity: Identity, entityId: string) {
+export async function eraseEntity(db: D1Database, bucket: R2Bucket, identity: Identity, entityId: string,
+  deletionRegistry: DeletionRegistry = createR2DeletionRegistry(bucket)) {
   const user = actor(identity), entity = key(entityId), at = new Date().toISOString();
   const started = await transact(db, [
     db.prepare(`INSERT INTO entity_deletions (entity_id, actor_id, started_at)
@@ -373,7 +387,7 @@ export async function eraseEntity(db: D1Database, bucket: R2Bucket, identity: Id
   ]);
   if (!started[3].results[0]) throw new DomainError('not_found');
   // D1 marks the entity first so a failed registry write leaves access blocked and retryable.
-  await writeDeletionTombstone(bucket, entity);
+  await deletionRegistry.ensure(entity);
   if (started[2].results.length > MAX_STORAGE_AUDIT_OBJECTS) throw new DomainError('limit_exceeded');
   const tracked = started[2].results.map(row => row.object_key)
     .filter((value): value is string => typeof value === 'string');
@@ -394,9 +408,10 @@ export async function eraseEntity(db: D1Database, bucket: R2Bucket, identity: Id
 
 // Offline recovery operation. Writes must remain stopped until every restored entity has
 // been checked; this function must never be exposed through a user-facing route.
-export async function reconcileRestoredEntityDeletion(db: D1Database, bucket: R2Bucket, entityId: string) {
+export async function reconcileRestoredEntityDeletion(db: D1Database, bucket: R2Bucket, entityId: string,
+  deletionRegistry: DeletionRegistry = createR2DeletionRegistry(bucket)) {
   const entity = key(entityId);
-  if (!(await readDeletionTombstone(bucket, entity))) {
+  if (!(await deletionRegistry.has(entity))) {
     return { entityId: entity, status: 'retained' as const, objectsRemoved: 0 };
   }
   const at = new Date().toISOString();
@@ -423,7 +438,8 @@ export async function reconcileRestoredEntityDeletion(db: D1Database, bucket: R2
 }
 
 export async function reconcileRestoredEntityDeletionsPage(db: D1Database, bucket: R2Bucket,
-  options: Readonly<{ after?: string; limit?: number }> = {}) {
+  options: Readonly<{ after?: string; limit?: number }> = {},
+  deletionRegistry: DeletionRegistry = createR2DeletionRegistry(bucket)) {
   if (!options || typeof options !== 'object') throw new DomainError('invalid_input');
   const after = options.after === undefined ? null : key(options.after);
   const limit = options.limit ?? 50;
@@ -439,7 +455,7 @@ export async function reconcileRestoredEntityDeletionsPage(db: D1Database, bucke
   });
   const counts = { removed: 0, retained: 0, absent: 0, objectsRemoved: 0 };
   for (const id of ids) {
-    const result = await reconcileRestoredEntityDeletion(db, bucket, id);
+    const result = await reconcileRestoredEntityDeletion(db, bucket, id, deletionRegistry);
     counts[result.status] += 1;
     counts.objectsRemoved += result.objectsRemoved;
   }

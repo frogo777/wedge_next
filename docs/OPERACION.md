@@ -25,7 +25,7 @@ El responsable designado deberá delimitar alcance, contener el acceso afectado 
 
 La auditoría preparatoria de almacenamiento compara D1/R2 con autorización previa, paginación y verificación SHA-256 opcional. Pruebas sintéticas demuestran que detecta objetos faltantes, alterados y huérfanos, además de distinguir intentos pendientes. Esto diagnostica consistencia; no restaura datos.
 
-No hay ejercicio de restauración remota verificado. El núcleo de borrado ya deja un tombstone mínimo en R2 antes de eliminar originales y D1; si no puede registrarlo, mantiene la entidad bloqueada para reintento. El reconciliador offline conserva entidades sin tombstone y elimina las revividas junto con cualquier objeto bajo su prefijo. Su coordinador procesa de 1 a 100 entidades por página y devuelve un cursor; ante un fallo, se reintenta la misma página antes de avanzar. Antes de recibir datos reales: seguir el [runbook R2](runbooks/R2-DELETION-POLICY.md), restaurar datos sintéticos en un entorno separado y medir pérdida máxima y tiempo de recuperación. No ejecutar D1 Time Travel directamente sobre una base que atiende usuarios: sobrescribe el estado y puede reactivar metadatos borrados. Toda restauración debe reconciliar eliminaciones previas y R2 antes de servir. No prometer RPO/RTO ni un protocolo 3-2-1 implementado. Ver [investigación de retención/recuperación](research/RETENTION-RECOVERY-2026-09-14.md) y [ADR 0003](decisions/0003-restore-safe-deletion-registry.md).
+No hay ejercicio de restauración remota verificado. El núcleo de borrado deja un tombstone mínimo antes de eliminar originales y D1; si no puede registrarlo, mantiene la entidad bloqueada para reintento. [ADR 0004](decisions/0004-founder-controlled-deletion-registry.md) prepara un R2 separado y administrable para ese registro, sin mover los originales de Sites. El reconciliador offline conserva entidades sin tombstone y elimina las revividas junto con cualquier objeto bajo su prefijo. Su coordinador procesa de 1 a 100 entidades por página y devuelve un cursor; ante un fallo, se reintenta la misma página antes de avanzar. Antes de recibir datos reales: seguir el [runbook R2](runbooks/R2-DELETION-POLICY.md), restaurar datos sintéticos en un entorno separado y medir pérdida máxima y tiempo de recuperación. No ejecutar D1 Time Travel directamente sobre una base que atiende usuarios: sobrescribe el estado y puede reactivar metadatos borrados. Toda restauración debe reconciliar eliminaciones previas y R2 antes de servir. No prometer RPO/RTO ni un protocolo 3-2-1 implementado. Ver [investigación de retención/recuperación](research/RETENTION-RECOVERY-2026-09-14.md) y [ADR 0003](decisions/0003-restore-safe-deletion-registry.md).
 
 ## Condiciones para abrir un piloto
 
@@ -36,7 +36,7 @@ No hay ejercicio de restauración remota verificado. El núcleo de borrado ya de
 | Exportación de originales privados | Ciclo sintético guardado–exportación–borrado probado en sesión real |
 | Inicio/cierre de sesión y recarga en dispositivos reales | Pendiente |
 | Responsable, canal de atención y aviso definitivo | Pendiente |
-| Retención y prueba de restauración | Política, tombstone y reconciliador probados; lock y restore remoto pendientes |
+| Retención y prueba de restauración | Ruta a R2 propio probada; activación, lock y restore remoto pendientes |
 | Motor fiscal revisado por profesional | No implementado |
 | Acuerdos de alcance, precio y cancelación | Pendiente |
 

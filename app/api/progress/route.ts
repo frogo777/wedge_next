@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { handleProgress } from '../../progress-service.mjs';
 import { eraseDemoSourceEntity, storeDemoSources } from '../../../packages/domain/demo-export.ts';
+import { deletionRegistryFromEnvironment } from '../../../packages/domain/deletion-registry-s3.ts';
 export const dynamic = 'force-dynamic';
 export function GET(request: Request) { return handleProgress(request, env.DB); }
 export function POST(request: Request) {
@@ -11,6 +12,7 @@ export function POST(request: Request) {
       env.DB,
       env.BUCKET,
       { userId },
+      deletionRegistryFromEnvironment(env, env.BUCKET),
     ),
   });
 }
