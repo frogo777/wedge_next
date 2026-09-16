@@ -25,7 +25,7 @@ Los importes del simulador ISR se procesan en memoria del navegador y no se env�
 
 El fundador decidió que los originales futuros también se conserven en la nube privada de Wedge y aprobó la política de retención del piloto. [ADR 0002](decisions/0002-private-source-storage.md) prepara D1 para propiedad/auditoría y R2 para bytes: claves sin RFC o nombre de archivo, acceso sólo desde servidor, verificación SHA-256 al leer y borrado activo R2 antes de D1. El máximo preparatorio es 128 KiB por XML y 1,000 fuentes distintas por entidad.
 
-La demo conecta el núcleo al catálogo cerrado incluido en el servidor. Procesar uno de esos ejemplos conserva sus bytes sintéticos en R2 y la [exportación completa](EXPORTACION.md) entrega un ZIP autenticado con progreso, manifiesto y originales verificados, sin revelar claves internas. El borrado de Privacidad alcanza la fila activa, la entidad y esos objetos. No existe carga de archivos externos y Wedge todavía no acepta documentos fiscales reales. La ruta ya está publicada en el Site privado; falta probarla desde la sesión real del fundador.
+La demo conecta el núcleo al catálogo cerrado incluido en el servidor. Procesar uno de esos ejemplos conserva sus bytes sintéticos en R2 y la [exportación completa](EXPORTACION.md) entrega un ZIP autenticado con progreso, manifiesto y originales verificados, sin revelar claves internas. El borrado de Privacidad alcanza la fila activa, la entidad y esos objetos. El ciclo se ejercitó desde la sesión real del fundador y terminó con las filas activas en cero. No existe carga de archivos externos y Wedge todavía no acepta documentos fiscales reales.
 
 ## Controles disponibles
 

@@ -54,4 +54,4 @@ Generar SQL aditivo con Drizzle y probarlo sobre una base temporal con todas las
 
 ## Frontera transferida
 
-La decisión de almacenar originales en nube privada y sus controles técnicos se registra en [ADR 0002](0002-private-source-storage.md). Siguen pendientes el control administrativo de retención, los respaldos del proveedor, la prueba remota desde una sesión real y la revisión específica de identidad/RFC antes del piloto. No migrar a documentos reales sólo porque las pruebas sintéticas pasen.
+La decisión de almacenar originales en nube privada y sus controles técnicos se registra en [ADR 0002](0002-private-source-storage.md). Siguen pendientes el control administrativo de retención, los respaldos/restores del proveedor y la revisión específica de identidad/RFC antes del piloto. No migrar a documentos reales sólo porque las pruebas sintéticas pasen.

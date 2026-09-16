@@ -8,7 +8,7 @@ Fecha canónica: 2026-09-15. Proyecto desde cero en `frogo777/wedge_next`. El hi
 
 Verificación local WDG-009D: `npm run verify` pasa con typecheck, 67 pruebas unitarias, build y 36 de integración (103 en total). Los casos nuevos cubren ZIP y rutas seguras, entidad única bajo concurrencia, reintento, autenticación/origen, almacenamiento R2, descarga repetida y borrado D1/R2 con tombstone. Lint pasa y la auditoría de producción reporta cero vulnerabilidades. La migración 0007 es aditiva y crea sólo el enlace uno-a-uno de la demo.
 
-Verificación remota WDG-009D: el commit `d70c385` pasó [CI Windows/Ubuntu](https://github.com/frogo777/wedge_next/actions/runs/35038282728) y se publicó como versión privada 12 de [Wedge en Sites](https://wedge-next.hola192112.chatgpt.site). Sites aplicó la migración: D1 expone las diez tablas esperadas; `demo_source_entities`, entidades, objetos y borrados permanecen vacíos. La revisión posterior no encontró eventos de error del Worker. Una solicitud sin identidad válida recibe 401 y no creó datos. Falta que el fundador ejecute una descarga controlada desde su sesión real para probar el recorrido remoto con R2; no se presenta la validación local como esa evidencia.
+Verificación remota WDG-009D: el commit `d70c385` pasó [CI Windows/Ubuntu](https://github.com/frogo777/wedge_next/actions/runs/35038282728) y se publicó como versión privada 12 de [Wedge en Sites](https://wedge-next.hola192112.chatgpt.site). Sites aplicó la migración y D1 expone las diez tablas esperadas. En una sesión real del fundador se procesó «Servicio de agosto»: el enlace, entidad, objeto y recibo pasaron de cero a una fila; el navegador consumió `/api/export` completo y la interfaz confirmó la copia. Después, el borrado confirmado dejó en cero `demo_progress`, enlace, entidad, objeto, recibo y estado de borrado; la interfaz volvió al resumen vacío. El repositorio sólo elimina la entidad D1 después de registrar el tombstone y completar el borrado R2. No hubo eventos de error del Worker durante el ejercicio. La prueba no usó archivos fiscales reales.
 
 **Incremento WDG-009C ([PR #7](https://github.com/frogo777/wedge_next/pull/7)):** el fundador aprobó [ADR 0003](decisions/0003-restore-safe-deletion-registry.md). El borrado marca D1, registra en R2 un tombstone de cero bytes y UUID hasheado, y después elimina objetos y entidad. Fallos conservan `deleting`; reintentos validan el tombstone existente. Un reconciliador offline paginado detecta entidades revividas y elimina también objetos huérfanos. El lock/lifecycle de 45 días sigue limitado al prefijo `deletions/v1/`, pero no pudo configurarse en nube porque el R2 de Sites no pertenece a la cuenta Cloudflare conectada; el [runbook](runbooks/R2-DELETION-POLICY.md) fija el cambio, la verificación y el desbloqueo requerido.
 
@@ -36,7 +36,7 @@ Verificación local WDG-004B: `npm run verify` pasa con typecheck, 65 pruebas un
 Fundamentos y dependencias   ✓ PR #1; CI Windows + Ubuntu pasa
 Procedencia por entidad      ✓ PR #2; núcleo D1 preparado
 Lectura XML adversarial      ✓ PR #3; CI Windows + Ubuntu pasa
-Originales de archivos       △ ciclo sintético desplegado; prueba UI pendiente
+Originales de archivos       ✓ ciclo sintético remoto ejecutado
 Auditoría de almacenamiento  ✓ faltantes/alteración/huérfanos detectados localmente
 Retención del piloto         ✓ política aprobada; revisión jurídica antes de datos reales
 Registro contra restores     △ esquema remoto vacío; política R2 bloqueada por Sites
@@ -49,7 +49,7 @@ Flujo financiero real        ○ todavía no habilitado
 
 Las dieciséis pruebas de WDG-004B cubren aislamiento, referencias cruzadas, reintento concurrente y posterior, actualización de recibos anteriores a R2, conflicto de comando, fallos de auditoría/R2, manipulación de bytes, carrera carga–borrado, borrado reintentable, cuotas y migración/reversión. WDG-009A añade cuatro pruebas de auditoría y WDG-009B cuatro de exportación completa. El manifiesto no filtra claves internas del bucket. Los originales sólo salen por la función de servidor, de uno en uno y con autorización posterior a la lectura de R2.
 
-**Siguiente:** ejecutar una copia sintética controlada desde la sesión real del fundador y comprobar descarga y borrado remotos. Después, obtener control administrativo del R2 de Sites o aprobar una migración a infraestructura Cloudflare propia para configurar/probar lock, lifecycle y recuperación remota. Los archivos externos permanecen cerrados hasta completar esas pruebas y los controles de ingesta. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
+**Siguiente:** obtener control administrativo del R2 de Sites o aprobar una migración a infraestructura Cloudflare propia para configurar/probar lock, lifecycle y recuperación remota. Después debe ejecutarse un restore sintético aislado. Los archivos externos permanecen cerrados hasta completar esas pruebas y los controles de ingesta. La bitácora sólo es append-only a través de la interfaz de repositorio; un administrador de D1 mantiene capacidad de modificar la base. La identidad sigue dependiendo del despachador Sites.
 
 ## Historial — auditoría de fundamentos del 2026-09-14
 

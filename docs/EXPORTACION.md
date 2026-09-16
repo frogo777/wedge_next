@@ -1,6 +1,6 @@
 # Exportación completa de una entidad
 
-Fecha: 2026-09-15. Implementación con datos sintéticos publicada en la versión privada 12 de Sites; prueba controlada desde la sesión real pendiente.
+Fecha: 2026-09-15. Implementación con datos sintéticos publicada y ejercitada desde la sesión real del fundador en la versión privada 12 de Sites.
 
 ## Salida
 
@@ -44,4 +44,4 @@ El navegador hace visible el resultado sólo después de consumir la respuesta c
 
 La interfaz actual reúne el ZIP completo en memoria antes de iniciar la descarga. Esto es acotado para los seis ejemplos pequeños del catálogo cerrado; debe sustituirse por una descarga nativa o escrita a disco antes de admitir lotes o archivos reales.
 
-Sites desplegó la ruta y la migración 0007, y rechaza solicitudes sin identidad válida. Todavía falta una descarga controlada desde la sesión real que ejercite R2 remoto. El registro de borrados y su reconciliador están probados localmente, pero faltan lock/lifecycle y simulacro de restauración remoto. La carga de documentos reales permanece cerrada hasta completar esas pruebas.
+Sites desplegó la ruta y la migración 0007, y rechaza solicitudes sin identidad válida. La prueba controlada procesó un XML sintético, confirmó el registro del objeto remoto, consumió la exportación completa y después eliminó progreso, entidad y objeto activos; D1 volvió a cero filas. El registro de borrados y su reconciliador están probados localmente, pero faltan lock/lifecycle y simulacro de restauración remoto. La carga de documentos reales permanece cerrada hasta completar esas pruebas.
